@@ -1,2 +1,2 @@
-# basic_lang
+# BASIC language
 BASIC language
