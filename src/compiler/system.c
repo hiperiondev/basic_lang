@@ -48,19 +48,19 @@ void* AllocateHighMemory(System_t *sys, size_t size) {
 }
 
 // GetMainSource - get the main source
-void GetMainSource(System_t *sys, GetLineHandler **pGetLine, void **pGetLineCookie) {
+void GetMainSource(System_line_t *sys, GetLineHandler **pGetLine, void **pGetLineCookie) {
     *pGetLine = sys->getLine;
     *pGetLineCookie = sys->getLineCookie;
 }
 
 // SetMainSource - set the main source
-void SetMainSource(System_t *sys, GetLineHandler *getLine, void *getLineCookie) {
+void SetMainSource(System_line_t *sys, GetLineHandler *getLine, void *getLineCookie) {
     sys->getLine = getLine;
     sys->getLineCookie = getLineCookie;
 }
 
 // GetLine - get the next input line
-int GetLine(System_t *sys, int *pLineNumber) {
+int GetLine(System_line_t *sys, int *pLineNumber) {
     if (!(*sys->getLine)(sys->lineBuf, sizeof(sys->lineBuf) - 1, pLineNumber, sys->getLineCookie))
         return VMFALSE;
     sys->linePtr = sys->lineBuf;

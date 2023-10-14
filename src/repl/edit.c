@@ -35,11 +35,12 @@ typedef struct {
 } Line_t;
 
 typedef struct {
-    System_t *sys;
-        char programName[FILENAME_MAX];
-     uint8_t *buffer;
-     uint8_t *bufferTop;
-      Line_t *currentLine;
+         System_t *sys;
+    System_line_t *sys_line;
+             char programName[FILENAME_MAX];
+          uint8_t *buffer;
+          uint8_t *bufferTop;
+           Line_t *currentLine;
 } EditBuf_t;
 
 // command handlers
@@ -56,18 +57,18 @@ static struct {
     char *name;
     void (*handler)(EditBuf_t *buf);
 } cmds[] = {
-        { "NEW", DoNew },
-        { "LIST", DoList },
-        { "RUN", DoRun },
+        { "NEW"  , DoNew   },
+        { "LIST" , DoList  },
+        { "RUN"  , DoRun   },
         { "RENUM", DoRenum },
-        { "LOAD", DoLoad },
-        { "SAVE", DoSave },
-        { "CAT", DoCat },
-        { NULL, NULL }
+        { "LOAD" , DoLoad  },
+        { "SAVE" , DoSave  },
+        { "CAT"  , DoCat   },
+        { NULL   , NULL    }
 };
 
 // prototypes
-static char* NextToken(System_t *sys);
+static char* NextToken(System_line_t *sys);
 static int ParseNumber(char *token, int *pValue);
 static int IsBlank(char *p);
 static int SetProgramName(EditBuf_t *buf);
@@ -81,7 +82,7 @@ static int BufSeekN(EditBuf_t *buf, int lineNumber);
 static char* BufGetLine(EditBuf_t *buf, int *pLineNumber, char *text);
 static int FindLineN(EditBuf_t *buf, int lineNumber, Line_t **pLine);
 
-void EditWorkspace(System_t *sys) {
+void EditWorkspace(System_t *sys, System_line_t *sys_line) {
     EditBuf_t *editBuf;
     int lineNumber;
     char *token;
@@ -89,18 +90,18 @@ void EditWorkspace(System_t *sys) {
     if (!(editBuf = BufInit(sys)))
         Abort(sys, "insufficient memory for edit buffer");
 
-    while (GetLine(sys, &lineNumber)) {
+    while (GetLine(sys_line, &lineNumber)) {
 
-        if ((token = NextToken(sys)) != NULL) {
+        if ((token = NextToken(sys_line)) != NULL) {
             if (ParseNumber(token, &lineNumber)) {
-                if (IsBlank(sys->linePtr)) {
+                if (IsBlank(sys_line->linePtr)) {
                     if (!BufDeleteLineN(editBuf, lineNumber))
                         VM_printf("no line %d\n", lineNumber);
                 }
                 else {
-                    if (isspace(*sys->linePtr))
-                        ++sys->linePtr;
-                    if (!BufAddLineN(editBuf, lineNumber, sys->linePtr))
+                    if (isspace(*sys_line->linePtr))
+                        ++sys_line->linePtr;
+                    if (!BufAddLineN(editBuf, lineNumber, sys_line->linePtr))
                         VM_printf("out of edit buffer space\n");
                 }
             }
@@ -111,6 +112,7 @@ void EditWorkspace(System_t *sys) {
                     if (strcasecmp(token, cmds[i].name) == 0)
                         break;
                 if (cmds[i].handler) {
+                    editBuf->sys_line = sys_line;
                     (*cmds[i].handler)(editBuf);
                     VM_printf("OK\n");
                 }
@@ -130,8 +132,8 @@ static void DoNew(EditBuf_t *buf) {
 static void DoList(EditBuf_t *buf) {
     int lineNumber;
     BufSeekN(buf, 0);
-    while (BufGetLine(buf, &lineNumber, buf->sys->lineBuf))
-        VM_printf("%d %s", lineNumber, buf->sys->lineBuf);
+    while (BufGetLine(buf, &lineNumber, buf->sys_line->lineBuf))
+        VM_printf("%d %s", lineNumber, buf->sys_line->lineBuf);
 }
 
 static char* EditGetLine(char *buf, int len, int *pLineNumber, void *cookie) {
@@ -141,24 +143,26 @@ static char* EditGetLine(char *buf, int len, int *pLineNumber, void *cookie) {
 
 static void DoRun(EditBuf_t *buf) {
     System_t *sys = buf->sys;
+    System_line_t *sys_line = buf->sys_line;
     ParseContext_t *c;
     GetLineHandler *getLine;
     void *getLineCookie;
     
     sys->nextHigh = buf->buffer;
     sys->nextLow = sys->freeSpace;
-    
+
     if (!(c = InitCompileContext(sys)))
         VM_printf("insufficient memory");
     
-    GetMainSource(sys, &getLine, &getLineCookie);
+    GetMainSource(sys_line, &getLine, &getLineCookie);
     
-    SetMainSource(sys, EditGetLine, buf);
+    SetMainSource(sys_line, EditGetLine, buf);
     BufSeekN(buf, 0);
 
+    c->sys_line = buf->sys_line;
     Compile(c);
 
-    SetMainSource(sys, getLine, getLineCookie);
+    SetMainSource(sys_line, getLine, getLineCookie);
 }
 
 static void DoRenum(EditBuf_t *buf) {
@@ -175,7 +179,7 @@ static void DoRenum(EditBuf_t *buf) {
 
 static int SetProgramName(EditBuf_t *buf) {
     char *name;
-    if ((name = NextToken(buf->sys)) != NULL) {
+    if ((name = NextToken(buf->sys_line)) != NULL) {
         strncpy(buf->programName, name, FILENAME_MAX - 1);
         buf->programName[FILENAME_MAX - 1] = '\0';
         if (!strchr(buf->programName, '.')) {
@@ -201,11 +205,11 @@ static void DoLoad(EditBuf_t *buf) {
     if (!(fp = VM_fopen(buf->programName, "r")))
         VM_printf("error loading '%s'\n", buf->programName);
     else {
-        System_t *sys = buf->sys;
+        System_line_t *sys_line = buf->sys_line;;
         VM_printf("Loading '%s'\n", buf->programName);
         BufNew(buf);
-        while (VM_fgets(sys->lineBuf, sizeof(sys->lineBuf), fp) != NULL) {
-            BufAddLineN(buf, lineNumber, sys->lineBuf);
+        while (VM_fgets(sys_line->lineBuf, sizeof(sys_line->lineBuf), fp) != NULL) {
+            BufAddLineN(buf, lineNumber, sys_line->lineBuf);
             lineNumber += lineNumberIncrement;
         }
         VM_fclose(fp);
@@ -225,12 +229,12 @@ static void DoSave(EditBuf_t *buf) {
     if (!(fp = VM_fopen(buf->programName, "w")))
         VM_printf("error saving '%s'\n", buf->programName);
     else {
-        System_t *sys = buf->sys;
+        System_line_t *sys_line = buf->sys_line;
         int lineNumber;
         VM_printf("Saving '%s'\n", buf->programName);
         BufSeekN(buf, 0);
-        while (BufGetLine(buf, &lineNumber, sys->lineBuf))
-            VM_fputs(sys->lineBuf, fp);
+        while (BufGetLine(buf, &lineNumber, sys_line->lineBuf))
+            VM_fputs(sys_line->lineBuf, fp);
         VM_fclose(fp);
     }
 }
@@ -248,7 +252,7 @@ static void DoCat(EditBuf_t *buf) {
     }
 }
 
-static char* NextToken(System_t *sys) {
+static char* NextToken(System_line_t *sys) {
     static char token[MAXTOKEN];
     int ch, i;
     

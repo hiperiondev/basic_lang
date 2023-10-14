@@ -201,6 +201,7 @@ struct Symbol_s {
 // parse context
 typedef struct {
              System_t *sys;                // system context
+        System_line_t *sys_line;           // input line
     GenerateContext_t *g;                  // generate - generate context
           ParseFile_t *currentFile;        // current input file
        IncludedFile_t *includedFiles;      // list of files that have already been included

@@ -132,7 +132,7 @@ int PushFile(ParseContext_t *c, const char *name) {
 
 // ParseGetLine - get the next input line
 int ParseGetLine(ParseContext_t *c) {
-    System_t *sys = c->sys;
+    System_line_t *sys = c->sys_line;
     ParseFile_t *f;
     int len;
 

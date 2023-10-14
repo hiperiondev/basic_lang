@@ -27,14 +27,11 @@
 // program limits
 #define MAXLINE  128
 
-// forward type definitions
-typedef struct System_s System_t;
-
 // line input handler
 typedef char* GetLineHandler(char *buf, int len, int *pLineNumber, void *cookie);
 
 // system context
-struct System_s {
+typedef struct System_s {
            jmp_buf errorTarget;      // error target
            uint8_t *freeSpace;       // base of free space
            uint8_t *freeNext;        // next free space available
@@ -43,11 +40,7 @@ struct System_s {
            uint8_t *nextLow;         // next low memory heap space location
             size_t heapSize;         // size of heap space in bytes
             size_t maxHeapUsed;      // maximum amount of heap space allocated so far
-    GetLineHandler *getLine;         // function to get a line from the source program
-              void *getLineCookie;   // cookie for the rewind and getLine functions
-              char lineBuf[MAXLINE]; // current input line
-              char *linePtr;         // pointer to the current character
-};
+} System_t;
 
 void* AllocateLowMemory(System_t *sys, size_t size);
  void Abort(System_t *sys, const char *fmt, ...);

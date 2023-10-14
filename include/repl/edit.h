@@ -23,6 +23,6 @@
 
 #include "system.h"
 
-void EditWorkspace(System_t *sys);
+void EditWorkspace(System_t *sys, System_line_t *sys_line);
 
 #endif

@@ -42,6 +42,14 @@ typedef struct {
     char name[FILENAME_MAX];
 } VMDIRENT_t;
 
+
+typedef struct System_line_s {
+    GetLineHandler *getLine;         // function to get a line from the source program
+              void *getLineCookie;   // cookie for the rewind and getLine functions
+              char lineBuf[MAXLINE]; // current input line
+              char *linePtr;         // pointer to the current character
+} System_line_t;
+
 // code generator context
 typedef struct GenerateContext_s GenerateContext_t;
 struct GenerateContext_s {
@@ -52,9 +60,9 @@ struct GenerateContext_s {
 System_t* InitSystem(uint8_t *freeSpace, size_t freeSize);
     void* AllocateHighMemory(System_t *sys, size_t size);
 
-    void GetMainSource(System_t *sys, GetLineHandler **pGetLine, void **pGetLineCookie);
-    void SetMainSource(System_t *sys, GetLineHandler *getLine, void *getLineCookie);
-     int GetLine(System_t *sys, int *pLineNumber);
+    void GetMainSource(System_line_t *sys, GetLineHandler **pGetLine, void **pGetLineCookie);
+    void SetMainSource(System_line_t *sys, GetLineHandler *getLine, void *getLineCookie);
+     int GetLine(System_line_t *sys, int *pLineNumber);
 
     void VM_sysinit(int argc, char *argv[]);
    void* VM_open(System_t *sys, const char *name, const char *mode);

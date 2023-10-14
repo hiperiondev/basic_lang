@@ -227,7 +227,7 @@ static int GetToken1(ParseContext_t *c) {
     ch = SkipSpaces(c);
 
     // remember the start of the current token
-    c->tokenOffset = (int) (c->sys->linePtr - c->sys->lineBuf);
+    c->tokenOffset = (int) (c->sys_line->linePtr - c->sys_line->lineBuf);
 
     // check the next character
     switch (ch) {
@@ -285,22 +285,22 @@ static int GetToken1(ParseContext_t *c) {
                 char *savePtr;
                 switch (tkn = IdentifierToken(c, ch)) {
                     case T_ELSE:
-                        savePtr = c->sys->linePtr;
+                        savePtr = c->sys_line->linePtr;
                         if ((ch = SkipSpaces(c)) != EOF && IdentifierCharP(ch)) {
                             switch (IdentifierToken(c, ch)) {
                                 case T_IF:
                                     tkn = T_ELSE_IF;
                                     break;
                                 default:
-                                    c->sys->linePtr = savePtr;
+                                    c->sys_line->linePtr = savePtr;
                                     break;
                             }
                         }
                         else
-                            c->sys->linePtr = savePtr;
+                            c->sys_line->linePtr = savePtr;
                         break;
                     case T_END:
-                        savePtr = c->sys->linePtr;
+                        savePtr = c->sys_line->linePtr;
                         if ((ch = SkipSpaces(c)) != EOF && IdentifierCharP(ch)) {
                             switch (IdentifierToken(c, ch)) {
                                 case T_FUNCTION:
@@ -316,15 +316,15 @@ static int GetToken1(ParseContext_t *c) {
                                     tkn = T_END_ASM;
                                     break;
                                 default:
-                                    c->sys->linePtr = savePtr;
+                                    c->sys_line->linePtr = savePtr;
                                     break;
                             }
                         }
                         else
-                            c->sys->linePtr = savePtr;
+                            c->sys_line->linePtr = savePtr;
                         break;
                     case T_DO:
-                        savePtr = c->sys->linePtr;
+                        savePtr = c->sys_line->linePtr;
                         if ((ch = SkipSpaces(c)) != EOF && IdentifierCharP(ch)) {
                             switch (IdentifierToken(c, ch)) {
                                 case T_WHILE:
@@ -334,15 +334,15 @@ static int GetToken1(ParseContext_t *c) {
                                     tkn = T_DO_UNTIL;
                                     break;
                                 default:
-                                    c->sys->linePtr = savePtr;
+                                    c->sys_line->linePtr = savePtr;
                                     break;
                             }
                         }
                         else
-                            c->sys->linePtr = savePtr;
+                            c->sys_line->linePtr = savePtr;
                         break;
                     case T_LOOP:
-                        savePtr = c->sys->linePtr;
+                        savePtr = c->sys_line->linePtr;
                         if ((ch = SkipSpaces(c)) != EOF && IdentifierCharP(ch)) {
                             switch (IdentifierToken(c, ch)) {
                                 case T_WHILE:
@@ -352,12 +352,12 @@ static int GetToken1(ParseContext_t *c) {
                                     tkn = T_LOOP_UNTIL;
                                     break;
                                 default:
-                                    c->sys->linePtr = savePtr;
+                                    c->sys_line->linePtr = savePtr;
                                     break;
                             }
                         }
                         else
-                            c->sys->linePtr = savePtr;
+                            c->sys_line->linePtr = savePtr;
                         break;
                 }
             }
@@ -595,8 +595,8 @@ static int XGetC(ParseContext_t *c) {
     int ch;
     
     // get the next character on the current line
-    if (!(ch = *c->sys->linePtr++)) {
-        --c->sys->linePtr;
+    if (!(ch = *c->sys_line->linePtr++)) {
+        --c->sys_line->linePtr;
         return EOF;
     }
     
@@ -607,7 +607,7 @@ static int XGetC(ParseContext_t *c) {
 // UngetC - unget the most recent character
 void UngetC(ParseContext_t *c) {
     // backup the input pointer
-    --c->sys->linePtr;
+    --c->sys_line->linePtr;
 }
 
 // ParseError - report a parsing error
@@ -623,7 +623,7 @@ void ParseError(ParseContext_t *c, const char *fmt, ...) {
 
     // show the context
     VM_printf("  line %d\n", c->lineNumber);
-    VM_printf("    %s", c->sys->lineBuf);
+    VM_printf("    %s", c->sys_line->lineBuf);
     VM_printf("    %*s^\n", c->tokenOffset, "");
 
     // exit until we fix the compiler so it can recover from parse errors
