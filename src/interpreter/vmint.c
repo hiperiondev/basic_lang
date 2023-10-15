@@ -28,7 +28,7 @@
 #include "vmdebug.h"
 #endif
 
-static void vm_do_trap(vm_t *i, int op) {
+static void vm_do_trap(vm_t *i, uint8_t op) {
     switch (op) {
         case TRAP_GetChar:
             vm_push(i, i->tos);
@@ -92,7 +92,7 @@ void vm_abort(vm_t *i, const char *fmt, ...) {
 }
 
 // initialize the interpreter
-vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, int stackSize) {
+vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, VMVALUE stackSize) {
     vm_t *i;
     
     if (!(i = (vm_t*) vm_allocate_low_memory(sys, sizeof(vm_t))))
@@ -111,7 +111,7 @@ vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, int stackSize) {
 int vm_execute(vm_t *i, VMVALUE mainCode) {
     VMVALUE tmp;
     int8_t tmpb;
-    int cnt;
+    int32_t cnt;
 
     // initialize
     i->pc = i->base + mainCode;

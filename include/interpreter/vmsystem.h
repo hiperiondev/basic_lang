@@ -41,7 +41,7 @@ void* vm_allocate_low_memory(vm_context_t *sys, size_t size);
 
   int vm_getchar(void);
  void vm_printf(const char *fmt, ...);
- void VM_vprintf(const char *fmt, va_list ap);
+ void vm_vprintf(const char *fmt, va_list ap);
  void vm_putchar(int ch);
  void vm_flush(void);
 

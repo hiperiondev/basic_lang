@@ -56,11 +56,11 @@ void vm_flush(void) {
 void vm_printf(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    VM_vprintf(fmt, ap);
+    vm_vprintf(fmt, ap);
     va_end(ap);
 }
 
-void VM_vprintf(const char *fmt, va_list ap) {
+void vm_vprintf(const char *fmt, va_list ap) {
     char buf[80], *p = buf;
     vsprintf(buf, fmt, ap);
     while (*p != '\0')

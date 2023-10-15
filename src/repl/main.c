@@ -38,21 +38,6 @@
 #define WORKSPACE_SIZE  (64 * 1024)
 uint8_t workspace[WORKSPACE_SIZE];
 
-static char* GetConsoleLine(char *buf, int size, int *pLineNumber, void *cookie);
-
-int main(int argc, char *argv[]) {
-    vm_context_t *sys = InitSystem(workspace, sizeof(workspace));
-    System_line_t *sys_line = malloc(sizeof(System_line_t));
-
-    if (sys) {
-        sys_line->getLine = GetConsoleLine;
-        edit_workspace(sys, sys_line);
-    }
-
-    free(sys_line);
-    return 0;
-}
-
 static char *GetConsoleLine(char *buf, int size, int *pLineNumber, void *cookie) {
     int i = 0;
     while (i < size - 1) {
@@ -79,4 +64,17 @@ static char *GetConsoleLine(char *buf, int size, int *pLineNumber, void *cookie)
     }
     buf[i] = '\0';
     return buf;
+}
+
+int main(int argc, char *argv[]) {
+    vm_context_t *sys = InitSystem(workspace, sizeof(workspace));
+    System_line_t *sys_line = malloc(sizeof(System_line_t));
+
+    if (sys) {
+        sys_line->getLine = GetConsoleLine;
+        edit_workspace(sys, sys_line);
+    }
+
+    free(sys_line);
+    return 0;
 }

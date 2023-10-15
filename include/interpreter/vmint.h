@@ -65,7 +65,7 @@ typedef struct vm_s {
 #define vm_drop(i, n)    ((i)->sp += (n))
 
 // prototypes from db_vmint.c
-vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, int stackSize);
+vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, VMVALUE stackSize);
   int vm_execute(vm_t *i, VMVALUE mainCode);
  void vm_abort(vm_t *i, const char *fmt, ...);
  void vm_stack_overflow(vm_t *i);
