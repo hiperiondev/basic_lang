@@ -80,7 +80,7 @@ uint8_t vm_execute(vm_t *i, VMVALUE mainCode);
    void vm_stack_overflow(vm_t *i);
    void vm_show_stack(vm_t *i);
 
-// prototypes and variables from db_vmfcn.c
+// prototypes and variables
    typedef void vm_intrinsic_func(vm_t *i);
          extern vm_intrinsic_func *vm_intrinsics[];
 extern uint32_t vm_intrinsic_cnt;

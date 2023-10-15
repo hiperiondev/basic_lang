@@ -52,7 +52,6 @@ void vm_flush(void) {
     fflush(stdout);
 }
 
-// VM_printf - formatted print
 void vm_printf(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);

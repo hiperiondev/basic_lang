@@ -17,9 +17,12 @@
  */
 
 #include <string.h>
+#include <stdbool.h>
 
 #include "compile.h"
 #include "vmdebug.h"
+
+bool lastReturn = false;
 
 // partial value
 typedef struct PVAL_s PVAL_t;
@@ -229,10 +232,13 @@ static void code_function_definition(GenerateContext_t *c, ParseTreeNode_t *node
     putcbyte(c, OP_FRAME);
     putcbyte(c, F_SIZE + node->u.functionDefinition.localOffset);
     code_statement_list(c, node->u.functionDefinition.bodyStatements);
-    if (node->u.functionDefinition.symbol)
-        putcbyte(c, OP_RETURNZ);
-    else
+
+    if (node->u.functionDefinition.symbol) {
+        if (!lastReturn)
+            putcbyte(c, OP_RETURNZ);
+    } else
         putcbyte(c, OP_HALT);
+
     codeSize = sys->nextLow - base;
     if (node->u.functionDefinition.symbol)
         PlaceSymbol(c, node->u.functionDefinition.symbol, code);
@@ -475,6 +481,12 @@ VMVALUE putcbyte(GenerateContext_t *c, int b) {
     if (sys->nextLow >= sys->nextHigh)
         GenerateFatal(c, "bytecode buffer overflow");
     *sys->nextLow++ = b;
+
+    if (b == OP_RETURN)
+        lastReturn = true;
+    else
+        lastReturn = false;
+
     return addr;
 }
 

@@ -67,7 +67,7 @@ enum OPCODES {
     OP_NATIVE,  // 0x27 execute native code
     OP_TRAP,    // 0x28 trap to handler
     OP_RETURNZ, // 0x29
-    OP_CLEAN    // 0x2c drop elements
+    OP_CLEAN    // 0x2c drop n elements
 };
 
 #endif
