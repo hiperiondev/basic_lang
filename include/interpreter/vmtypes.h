@@ -44,7 +44,7 @@
 #define VMUVALUE        uint32_t
 
 #define VMCODEBYTE(p)   *(uint8_t *)(p)
-#define VMINTRINSIC(i)  intrinsics[i]
+#define VMINTRINSIC(i)  vm_intrinsics[i]
 
 #define ALIGN_MASK      (sizeof(VMVALUE) - 1)
 

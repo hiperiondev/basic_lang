@@ -26,6 +26,8 @@
 #include "vmsystem.h"
 #include "vmimage.h"
 
+//#define VM_DEBUG
+
 // interpreter state structure
 typedef struct vm_s {
     vm_context_t *sys;
@@ -65,15 +67,15 @@ typedef struct vm_s {
 #define vm_drop(i, n)    ((i)->sp += (n))
 
 // prototypes from db_vmint.c
-vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, VMVALUE stackSize);
-  int vm_execute(vm_t *i, VMVALUE mainCode);
- void vm_abort(vm_t *i, const char *fmt, ...);
- void vm_stack_overflow(vm_t *i);
- void vm_show_stack(vm_t *i);
+  vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, VMVALUE stackSize);
+uint8_t vm_execute(vm_t *i, VMVALUE mainCode);
+   void vm_abort(vm_t *i, const char *fmt, ...);
+   void vm_stack_overflow(vm_t *i);
+   void vm_show_stack(vm_t *i);
 
 // prototypes and variables from db_vmfcn.c
-typedef void intrinsic_func(vm_t *i);
-extern intrinsic_func *intrinsics[];
-extern int intrinsic_cnt;
+   typedef void vm_intrinsic_func(vm_t *i);
+         extern vm_intrinsic_func *vm_intrinsics[];
+extern uint32_t vm_intrinsic_cnt;
 
 #endif

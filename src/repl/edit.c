@@ -57,16 +57,17 @@ static void DoHelp(EditBuf_t *buf);
 static struct {
     char *name;
     void (*handler)(EditBuf_t *buf);
+    char *help;
 } cmds[] = {
-        { "NEW"  , DoNew   },
-        { "LIST" , DoList  },
-        { "RUN"  , DoRun   },
-        { "RENUM", DoRenum },
-        { "LOAD" , DoLoad  },
-        { "SAVE" , DoSave  },
-        { "CAT"  , DoCat   },
-        { "HELP" , DoHelp  },
-        { NULL   , NULL    }
+        { "NEW"  , DoNew  , "create new file" },
+        { "LIST" , DoList , "list loaded program" },
+        { "RUN"  , DoRun  , "run loaded file" },
+        { "RENUM", DoRenum, "renumber program lines" },
+        { "LOAD" , DoLoad , "load file" },
+        { "SAVE" , DoSave , "save program" },
+        { "CAT"  , DoCat  , "show file content" },
+        { "HELP" , DoHelp , "this help" },
+        { NULL   , NULL   , NULL }
 };
 
 // prototypes
@@ -128,7 +129,7 @@ void edit_workspace(vm_context_t *sys, System_line_t *sys_line) {
 
 static void DoHelp(EditBuf_t *buf) {
     for (uint32_t i = 0; cmds[i].name != NULL; ++i)
-        printf("%s\n", cmds[i].name);
+        printf("%s: %s\n", cmds[i].name, cmds[i].help);
 }
 
 static void DoNew(EditBuf_t *buf) {

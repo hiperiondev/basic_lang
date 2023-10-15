@@ -22,9 +22,7 @@
 #include "vmint.h"
 #include "vmsystem.h"
 
-//#define DEBUG_INTERPRETER
-
-#ifdef DEBUG_INTERPRETER
+#ifdef VM_DEBUG
 #include "vmdebug.h"
 #endif
 
@@ -108,7 +106,7 @@ vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, VMVALUE stackSize) {
 }
 
 // Execute - execute the main code
-int vm_execute(vm_t *i, VMVALUE mainCode) {
+uint8_t vm_execute(vm_t *i, VMVALUE mainCode) {
     VMVALUE tmp;
     int8_t tmpb;
     int32_t cnt;
@@ -121,7 +119,7 @@ int vm_execute(vm_t *i, VMVALUE mainCode) {
         return VMFALSE;
 
     for (;;) {
-#ifdef DEBUG_INTERPRETER
+#ifdef VM_DEBUG
         vm_show_stack(i);
         vmdebug_decode_instruction(i->pc - i->base, i->pc);
 #endif

@@ -68,13 +68,12 @@ static char *GetConsoleLine(char *buf, int size, int *pLineNumber, void *cookie)
 
 int main(int argc, char *argv[]) {
     vm_context_t *sys = InitSystem(workspace, sizeof(workspace));
-    System_line_t *sys_line = malloc(sizeof(System_line_t));
+    System_line_t sys_line;
 
     if (sys) {
-        sys_line->getLine = GetConsoleLine;
-        edit_workspace(sys, sys_line);
+        sys_line.getLine = GetConsoleLine;
+        edit_workspace(sys, &sys_line);
     }
 
-    free(sys_line);
     return 0;
 }
