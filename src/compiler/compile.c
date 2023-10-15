@@ -103,18 +103,18 @@ int PushFile(ParseContext_t *c, const char *name) {
             return VMTRUE;
     
     // add this file to the list of already included files
-    if (!(inc = (IncludedFile_t*) AllocateHighMemory(sys, sizeof(IncludedFile_t) + strlen(name))))
+    if (!(inc = (IncludedFile_t*) system_allocate_high_memory(sys, sizeof(IncludedFile_t) + strlen(name))))
         vm_system_abort(sys, "insufficient memory");
     strcpy(inc->name, name);
     inc->next = c->includedFiles;
     c->includedFiles = inc;
 
     // open the input file
-    if (!(fp = VM_open(sys, name, "r")))
+    if (!(fp = system_fs_open(sys, name, "r")))
         return VMFALSE;
     
     // allocate a parse file structure
-    if (!(f = (ParseFile_t*) AllocateHighMemory(sys, sizeof(ParseFile_t))))
+    if (!(f = (ParseFile_t*) system_allocate_high_memory(sys, sizeof(ParseFile_t))))
         vm_system_abort(sys, "insufficient memory");
     
     // initialize the parse file structure
@@ -141,7 +141,7 @@ int ParseGetLine(ParseContext_t *c) {
         
         // get a line from the main input
         if (!(f = c->currentFile)) {
-            if (GetLine(sys, &c->lineNumber))
+            if (system_get_line(sys, &c->lineNumber))
                 break;
             else
                 return VMFALSE;
@@ -149,14 +149,14 @@ int ParseGetLine(ParseContext_t *c) {
 
         // get a line from the current include file
         else {
-            if (VM_getline(sys->lineBuf, sizeof(sys->lineBuf) - 1, f->fp)) {
+            if (system_fs_getline(sys->lineBuf, sizeof(sys->lineBuf) - 1, f->fp)) {
                 c->lineNumber = ++f->lineNumber;
                 sys->linePtr = sys->lineBuf;
                 break;
             }
             else {
                 c->currentFile = f->next;
-                VM_close(f->fp);
+                system_fs_close(f->fp);
             }
         }
     }

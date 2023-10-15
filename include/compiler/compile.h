@@ -23,11 +23,14 @@
 #include <setjmp.h>
 
 #include "vmtypes.h"
-#include "vmimage.h"
+#include "vmopcodes.h"
 #include "system.h"
 
 // program limits
 #define MAXTOKEN  32
+
+// frame size
+#define F_SIZE     1
 
 // forward type declarations
 typedef struct SymbolTable_s SymbolTable_t;

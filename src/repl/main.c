@@ -67,7 +67,7 @@ static char *GetConsoleLine(char *buf, int size, int *pLineNumber, void *cookie)
 }
 
 int main(int argc, char *argv[]) {
-    vm_context_t *sys = InitSystem(workspace, sizeof(workspace));
+    vm_context_t *sys = system_init_context(workspace, sizeof(workspace));
     System_line_t sys_line;
 
     if (sys) {

@@ -85,7 +85,7 @@ static void GenerateFatal(GenerateContext_t *c, const char *fmt, ...);
 // InitGenerateContext - initialize a generate context
 GenerateContext_t* InitGenerateContext(vm_context_t *sys) {
     GenerateContext_t *g;
-    if (!(g = (GenerateContext_t*) AllocateHighMemory(sys, sizeof(GenerateContext_t))))
+    if (!(g = (GenerateContext_t*) system_allocate_high_memory(sys, sizeof(GenerateContext_t))))
         return NULL;
     g->sys = sys;
     g->codeBuf = sys->nextLow;

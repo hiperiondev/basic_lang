@@ -23,8 +23,6 @@
 
 #include "vmtypes.h"
 
-#define F_SIZE     1
-
 // opcodes
 enum OPCODES {
     OP_HALT,    // 0x00 halt
@@ -69,18 +67,7 @@ enum OPCODES {
     OP_NATIVE,  // 0x27 execute native code
     OP_TRAP,    // 0x28 trap to handler
     OP_RETURNZ, // 0x29
-    OP_CLEAN    // 0x2c
-};
-
-// VM trap codes
-enum {
-    TRAP_GetChar    = 0,
-    TRAP_PutChar    = 1,
-    TRAP_PrintStr   = 2,
-    TRAP_PrintInt   = 3,
-    TRAP_PrintTab   = 4,
-    TRAP_PrintNL    = 5,
-    TRAP_PrintFlush = 6,
+    OP_CLEAN    // 0x2c drop elements
 };
 
 #endif

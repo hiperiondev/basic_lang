@@ -24,13 +24,23 @@
 #include <setjmp.h>
 
 #include "vmsystem.h"
-#include "vmimage.h"
+#include "vmopcodes.h"
 
 //#define VM_DEBUG
 
+// vm trap codes
+enum {
+    TRAP_GetChar    = 0,
+    TRAP_PutChar    = 1,
+    TRAP_PrintStr   = 2,
+    TRAP_PrintInt   = 3,
+    TRAP_PrintTab   = 4,
+    TRAP_PrintNL    = 5,
+    TRAP_PrintFlush = 6,
+};
+
 // interpreter state structure
 typedef struct vm_s {
-    vm_context_t *sys;
          uint8_t *base;
          jmp_buf errorTarget;
          VMVALUE *stack;
@@ -43,28 +53,25 @@ typedef struct vm_s {
 
 // stack frame offsets
 #define F_FP    -1
-#define F_SIZE  1
 
 // stack manipulation macros
-#define vm_reserve(i, n) do {                                   \
-                            if ((i)->sp - (n) < (i)->stack)     \
-					 		vm_stack_overflow(i);               \
-                            else  {                             \
-                                int _cnt = (n);                 \
-                                while (--_cnt >= 0)             \
-								vm_push(i, 0);                  \
-                            }                                   \
-                         } while (0)
-#define vm_cpush(i, v)   do {                                   \
-                            if ((i)->sp - 1 < (i)->stack)       \
-							vm_stack_overflow(i);               \
-                            else                                \
-							vm_push(i, v);                      \
-                         } while (0)
-#define vm_push(i, v)    (*--(i)->sp = (v))
-#define vm_pop(i)        (*(i)->sp++)
-#define vm_top(i)        (*(i)->sp)
-#define vm_drop(i, n)    ((i)->sp += (n))
+#define vm_reserve(i, n)  if ((i)->sp - (n) < (i)->stack) \
+                              vm_stack_overflow(i);       \
+                          else  {                         \
+                              int _cnt = (n);             \
+                              while (--_cnt >= 0)         \
+                              vm_push(i, 0);              \
+                          }
+
+#define vm_cpush(i, v)    if ((i)->sp - 1 < (i)->stack)   \
+                              vm_stack_overflow(i);       \
+                          else                            \
+                              vm_push(i, v);
+
+#define vm_push(i, v)     (*--(i)->sp = (v))
+#define vm_pop(i)         (*(i)->sp++)
+#define vm_top(i)         (*(i)->sp)
+#define vm_drop(i, n)     ((i)->sp += (n))
 
 // prototypes from db_vmint.c
   vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, VMVALUE stackSize);

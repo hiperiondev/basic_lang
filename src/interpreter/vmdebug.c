@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "vmimage.h"
+#include "vmopcodes.h"
 #include "vmdebug.h"
 #include "vmsystem.h"
 

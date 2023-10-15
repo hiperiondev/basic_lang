@@ -107,7 +107,7 @@ static int IsIntegerLit(ParseTreeNode_t *node);
 
 // InitParseContext - parse a statement
 ParseContext_t* InitParseContext(vm_context_t *sys) {
-    ParseContext_t *c = (ParseContext_t*) AllocateHighMemory(sys, sizeof(ParseContext_t));
+    ParseContext_t *c = (ParseContext_t*) system_allocate_high_memory(sys, sizeof(ParseContext_t));
     if (c) {
         memset(c, 0, sizeof(ParseContext_t));
         c->sys = sys;
@@ -1173,7 +1173,7 @@ static ParseTreeNode_t* ParseCall(ParseContext_t *c, ParseTreeNode_t *functionNo
     if ((tkn = GetToken(c)) != ')') {
         SaveToken(c, tkn);
         do {
-            NodeListEntry_t *actual = (NodeListEntry_t*) AllocateHighMemory(c->sys, sizeof(NodeListEntry_t));
+            NodeListEntry_t *actual = (NodeListEntry_t*) system_allocate_high_memory(c->sys, sizeof(NodeListEntry_t));
             actual->node = ParseExpr(c);
             actual->next = node->u.functionCall.args;
             node->u.functionCall.args = actual;
@@ -1423,7 +1423,7 @@ static void PopBlock(ParseContext_t *c) {
 
 // NewParseTreeNode - allocate a new parse tree node
 ParseTreeNode_t* NewParseTreeNode(ParseContext_t *c, int type) {
-    ParseTreeNode_t *node = (ParseTreeNode_t*) AllocateHighMemory(c->sys, sizeof(ParseTreeNode_t));
+    ParseTreeNode_t *node = (ParseTreeNode_t*) system_allocate_high_memory(c->sys, sizeof(ParseTreeNode_t));
     memset(node, 0, sizeof(ParseTreeNode_t));
     node->nodeType = type;
     return node;
@@ -1431,7 +1431,7 @@ ParseTreeNode_t* NewParseTreeNode(ParseContext_t *c, int type) {
 
 // AddNodeToList - add a node to a parse tree node list
 void AddNodeToList(ParseContext_t *c, NodeListEntry_t ***ppNextEntry, ParseTreeNode_t *node) {
-    NodeListEntry_t *entry = (NodeListEntry_t*) AllocateHighMemory(c->sys, sizeof(NodeListEntry_t));
+    NodeListEntry_t *entry = (NodeListEntry_t*) system_allocate_high_memory(c->sys, sizeof(NodeListEntry_t));
     entry->node = node;
     entry->next = NULL;
     **ppNextEntry = entry;

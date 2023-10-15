@@ -57,25 +57,23 @@ typedef struct System_line_s {
 } System_line_t;
 
 // code generator context
-typedef struct GenerateContext_s GenerateContext_t;
-struct GenerateContext_s {
+typedef struct GenerateContext_s {
     vm_context_t *sys;
          uint8_t *codeBuf;
-};
+} GenerateContext_t;
 
-vm_context_t* InitSystem(uint8_t *freeSpace, size_t freeSize);
-        void* AllocateHighMemory(vm_context_t *sys, size_t size);
+vm_context_t* system_init_context(uint8_t *freeSpace, size_t freeSize);
+        void* system_allocate_high_memory(vm_context_t *sys, size_t size);
 
-         void GetMainSource(System_line_t *sys, GetLineHandler **pGetLine, void **pGetLineCookie);
-         void SetMainSource(System_line_t *sys, GetLineHandler *getLine, void *getLineCookie);
-          int GetLine(System_line_t *sys, int *pLineNumber);
+         void system_get_main_source(System_line_t *sys, GetLineHandler **pGetLine, void **pGetLineCookie);
+         void system_set_main_source(System_line_t *sys, GetLineHandler *getLine, void *getLineCookie);
+          int system_get_line(System_line_t *sys, int *pLineNumber);
 
-         void VM_sysinit(int argc, char *argv[]);
-        void* VM_open(vm_context_t *sys, const char *name, const char *mode);
-        char* VM_getline(char *buf, int size, void *fp);
-         void VM_close(void *fp);
-          int VM_opendir(const char *path, VMDIR_t *dir);
-          int VM_readdir(VMDIR_t *dir, VMDIRENT_t *entry);
-         void VM_closedir(VMDIR_t *dir);
+        void* system_fs_open(vm_context_t *sys, const char *name, const char *mode);
+        char* system_fs_getline(char *buf, int size, void *fp);
+         void system_fs_close(void *fp);
+          int system_fs_opendir(const char *path, VMDIR_t *dir);
+          int system_fs_readdir(VMDIR_t *dir, VMDIRENT_t *entry);
+         void system_fs_closedir(VMDIR_t *dir);
 
 #endif

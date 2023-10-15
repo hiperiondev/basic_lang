@@ -18,7 +18,7 @@
 
 #include <stdlib.h>
 
-#include "vmimage.h"
+#include "vmopcodes.h"
 #include "vmint.h"
 #include "vmsystem.h"
 
@@ -105,7 +105,7 @@ vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, VMVALUE stackSize) {
     return i;
 }
 
-// Execute - execute the main code
+// execute the main code
 uint8_t vm_execute(vm_t *i, VMVALUE mainCode) {
     VMVALUE tmp;
     int8_t tmpb;

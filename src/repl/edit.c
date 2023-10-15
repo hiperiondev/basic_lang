@@ -93,7 +93,7 @@ void edit_workspace(vm_context_t *sys, System_line_t *sys_line) {
     if (!(editBuf = BufInit(sys)))
         vm_system_abort(sys, "insufficient memory for edit buffer");
 
-    while (GetLine(sys_line, &lineNumber)) {
+    while (system_get_line(sys_line, &lineNumber)) {
 
         if ((token = NextToken(sys_line)) != NULL) {
             if (ParseNumber(token, &lineNumber)) {
@@ -162,15 +162,15 @@ static void DoRun(EditBuf_t *buf) {
     if (!(c = InitCompileContext(sys)))
         vm_printf("insufficient memory");
     
-    GetMainSource(sys_line, &getLine, &getLineCookie);
+    system_get_main_source(sys_line, &getLine, &getLineCookie);
     
-    SetMainSource(sys_line, EditGetLine, buf);
+    system_set_main_source(sys_line, EditGetLine, buf);
     BufSeekN(buf, 0);
 
     c->sys_line = buf->sys_line;
     Compile(c);
 
-    SetMainSource(sys_line, getLine, getLineCookie);
+    system_set_main_source(sys_line, getLine, getLineCookie);
 }
 
 static void DoRenum(EditBuf_t *buf) {
@@ -250,13 +250,13 @@ static void DoSave(EditBuf_t *buf) {
 static void DoCat(EditBuf_t *buf) {
     VMDIRENT_t entry;
     VMDIR_t dir;
-    if (VM_opendir(".", &dir) == 0) {
-        while (VM_readdir(&dir, &entry) == 0) {
+    if (system_fs_opendir(".", &dir) == 0) {
+        while (system_fs_readdir(&dir, &entry) == 0) {
             int len = strlen(entry.name);
             if (len >= 4 && strcasecmp(&entry.name[len - 4], ".bas") == 0)
                 vm_printf("  %s\n", entry.name);
         }
-        VM_closedir(&dir);
+        system_fs_closedir(&dir);
     }
 }
 
@@ -295,7 +295,7 @@ static int IsBlank(char *p) {
 
 static EditBuf_t* BufInit(vm_context_t *sys) {
     EditBuf_t *buf;
-    if (!(buf = (EditBuf_t*) AllocateHighMemory(sys, sizeof(EditBuf_t))))
+    if (!(buf = (EditBuf_t*) system_allocate_high_memory(sys, sizeof(EditBuf_t))))
         return NULL;
     memset(buf, 0, sizeof(EditBuf_t));
     buf->sys = sys;

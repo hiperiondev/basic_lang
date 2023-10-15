@@ -72,7 +72,7 @@ static Symbol_t* AddLocalSymbol(ParseContext_t *c, SymbolTable_t *table, const c
     Symbol_t *sym;
     
     // allocate the symbol structure
-    sym = (Symbol_t*) AllocateHighMemory(c->sys, size);
+    sym = (Symbol_t*) system_allocate_high_memory(c->sys, size);
     strcpy(sym->name, name);
     sym->placed = VMTRUE;
     sym->storageClass = storageClass;

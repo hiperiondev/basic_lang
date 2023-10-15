@@ -22,8 +22,8 @@
 
 #include "system.h"
 
-// InitSystem - initialize the compiler
-vm_context_t* InitSystem(uint8_t *freeSpace, size_t freeSize) {
+// initialize the compiler
+vm_context_t* system_init_context(uint8_t *freeSpace, size_t freeSize) {
     vm_context_t *sys = (vm_context_t*) freeSpace;
     if (freeSize < sizeof(vm_context_t))
         return NULL;
@@ -36,8 +36,8 @@ vm_context_t* InitSystem(uint8_t *freeSpace, size_t freeSize) {
     return sys;
 }
 
-// AllocateHighMemory - allocate high memory from the heap
-void* AllocateHighMemory(vm_context_t *sys, size_t size) {
+// allocate high memory from the heap
+void* system_allocate_high_memory(vm_context_t *sys, size_t size) {
     size = (size + ALIGN_MASK) & ~ALIGN_MASK;
     if (sys->nextHigh - size < sys->nextLow)
         vm_system_abort(sys, "insufficient memory");
@@ -48,44 +48,44 @@ void* AllocateHighMemory(vm_context_t *sys, size_t size) {
 }
 
 // GetMainSource - get the main source
-void GetMainSource(System_line_t *sys, GetLineHandler **pGetLine, void **pGetLineCookie) {
+void system_get_main_source(System_line_t *sys, GetLineHandler **pGetLine, void **pGetLineCookie) {
     *pGetLine = sys->getLine;
     *pGetLineCookie = sys->getLineCookie;
 }
 
 // SetMainSource - set the main source
-void SetMainSource(System_line_t *sys, GetLineHandler *getLine, void *getLineCookie) {
+void system_set_main_source(System_line_t *sys, GetLineHandler *getLine, void *getLineCookie) {
     sys->getLine = getLine;
     sys->getLineCookie = getLineCookie;
 }
 
 // GetLine - get the next input line
-int GetLine(System_line_t *sys, int *pLineNumber) {
+int system_get_line(System_line_t *sys, int *pLineNumber) {
     if (!(*sys->getLine)(sys->lineBuf, sizeof(sys->lineBuf) - 1, pLineNumber, sys->getLineCookie))
         return VMFALSE;
     sys->linePtr = sys->lineBuf;
     return VMTRUE;
 }
 
-void* VM_open(vm_context_t *sys, const char *name, const char *mode) {
+void* system_fs_open(vm_context_t *sys, const char *name, const char *mode) {
     return (void*) fopen(name, mode);
 }
 
-char* VM_getline(char *buf, int size, void *fp) {
+char* system_fs_getline(char *buf, int size, void *fp) {
     return fgets(buf, size, (FILE*) fp);
 }
 
-void VM_close(void *fp) {
+void system_fs_close(void *fp) {
     fclose((FILE*) fp);
 }
 
-int VM_opendir(const char *path, VMDIR_t *dir) {
+int system_fs_opendir(const char *path, VMDIR_t *dir) {
     if (!(dir->dirp = opendir(path)))
         return -1;
     return 0;
 }
 
-int VM_readdir(VMDIR_t *dir, VMDIRENT_t *entry) {
+int system_fs_readdir(VMDIR_t *dir, VMDIRENT_t *entry) {
     struct dirent *ansi_entry;
 
     if (!(ansi_entry = readdir(dir->dirp)))
@@ -96,6 +96,6 @@ int VM_readdir(VMDIR_t *dir, VMDIRENT_t *entry) {
     return 0;
 }
 
-void VM_closedir(VMDIR_t *dir) {
+void system_fs_closedir(VMDIR_t *dir) {
     closedir(dir->dirp);
 }
