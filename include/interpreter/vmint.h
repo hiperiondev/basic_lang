@@ -26,62 +26,54 @@
 #include "vmsystem.h"
 #include "vmimage.h"
 
-// forward type declarations
-typedef struct Interpreter_s Interpreter_t;
-
-// intrinsic function handler type
-typedef void IntrinsicFcn(Interpreter_t *i);
-
 // interpreter state structure
-struct Interpreter_s {
-    System_t *sys;
-     uint8_t *base;
-     jmp_buf errorTarget;
-     VMVALUE *stack;
-     VMVALUE *stackTop;
-     uint8_t *pc;
-     VMVALUE *fp;
-     VMVALUE *sp;
-     VMVALUE tos;
-};
+typedef struct vm_s {
+    vm_context_t *sys;
+         uint8_t *base;
+         jmp_buf errorTarget;
+         VMVALUE *stack;
+         VMVALUE *stackTop;
+         uint8_t *pc;
+         VMVALUE *fp;
+         VMVALUE *sp;
+         VMVALUE tos;
+} vm_t;
 
 // stack frame offsets
 #define F_FP    -1
 #define F_SIZE  1
 
 // stack manipulation macros
-#define Reserve(i, n)   do {                                    \
+#define vm_reserve(i, n) do {                                   \
                             if ((i)->sp - (n) < (i)->stack)     \
-                                StackOverflow(i);               \
+					 		vm_stack_overflow(i);               \
                             else  {                             \
                                 int _cnt = (n);                 \
                                 while (--_cnt >= 0)             \
-                                    Push(i, 0);                 \
+								vm_push(i, 0);                  \
                             }                                   \
-                        } while (0)
-#define CPush(i, v)     do {                                    \
+                         } while (0)
+#define vm_cpush(i, v)   do {                                   \
                             if ((i)->sp - 1 < (i)->stack)       \
-                                StackOverflow(i);               \
+							vm_stack_overflow(i);               \
                             else                                \
-                                Push(i, v);                     \
-                        } while (0)
-#define Push(i, v)      (*--(i)->sp = (v))
-#define Pop(i)          (*(i)->sp++)
-#define Top(i)          (*(i)->sp)
-#define Drop(i, n)      ((i)->sp += (n))
-
-// prototypes for xbint.c
-          void Fatal(System_t *sys, const char *fmt, ...);
+							vm_push(i, v);                      \
+                         } while (0)
+#define vm_push(i, v)    (*--(i)->sp = (v))
+#define vm_pop(i)        (*(i)->sp++)
+#define vm_top(i)        (*(i)->sp)
+#define vm_drop(i, n)    ((i)->sp += (n))
 
 // prototypes from db_vmint.c
-Interpreter_t* InitInterpreter(System_t *sys, uint8_t *base, int stackSize);
-           int Execute(Interpreter_t *i, VMVALUE mainCode);
-          void AbortVM(Interpreter_t *i, const char *fmt, ...);
-          void StackOverflow(Interpreter_t *i);
-          void ShowStack(Interpreter_t *i);
+vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, int stackSize);
+  int vm_execute(vm_t *i, VMVALUE mainCode);
+ void vm_abort(vm_t *i, const char *fmt, ...);
+ void vm_stack_overflow(vm_t *i);
+ void vm_show_stack(vm_t *i);
 
 // prototypes and variables from db_vmfcn.c
-extern IntrinsicFcn *Intrinsics[];
-extern int IntrinsicCount;
+typedef void intrinsic_func(vm_t *i);
+extern intrinsic_func *intrinsics[];
+extern int intrinsic_cnt;
 
 #endif

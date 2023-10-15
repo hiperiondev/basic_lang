@@ -35,7 +35,7 @@ typedef struct {
 } Line_t;
 
 typedef struct {
-         System_t *sys;
+     vm_context_t *sys;
     System_line_t *sys_line;
              char programName[FILENAME_MAX];
           uint8_t *buffer;
@@ -51,6 +51,7 @@ static void DoRenum(EditBuf_t *buf);
 static void DoLoad(EditBuf_t *buf);
 static void DoSave(EditBuf_t *buf);
 static void DoCat(EditBuf_t *buf);
+static void DoHelp(EditBuf_t *buf);
 
 // command table
 static struct {
@@ -64,6 +65,7 @@ static struct {
         { "LOAD" , DoLoad  },
         { "SAVE" , DoSave  },
         { "CAT"  , DoCat   },
+        { "HELP" , DoHelp  },
         { NULL   , NULL    }
 };
 
@@ -74,7 +76,7 @@ static int IsBlank(char *p);
 static int SetProgramName(EditBuf_t *buf);
 
 // edit buffer prototypes
-static EditBuf_t* BufInit(System_t *sys);
+static EditBuf_t* BufInit(vm_context_t *sys);
 static void BufNew(EditBuf_t *buf);
 static int BufAddLineN(EditBuf_t *buf, int lineNumber, const char *text);
 static int BufDeleteLineN(EditBuf_t *buf, int lineNumber);
@@ -82,13 +84,13 @@ static int BufSeekN(EditBuf_t *buf, int lineNumber);
 static char* BufGetLine(EditBuf_t *buf, int *pLineNumber, char *text);
 static int FindLineN(EditBuf_t *buf, int lineNumber, Line_t **pLine);
 
-void EditWorkspace(System_t *sys, System_line_t *sys_line) {
+void edit_workspace(vm_context_t *sys, System_line_t *sys_line) {
     EditBuf_t *editBuf;
     int lineNumber;
     char *token;
     
     if (!(editBuf = BufInit(sys)))
-        Abort(sys, "insufficient memory for edit buffer");
+        vm_system_abort(sys, "insufficient memory for edit buffer");
 
     while (GetLine(sys_line, &lineNumber)) {
 
@@ -96,13 +98,13 @@ void EditWorkspace(System_t *sys, System_line_t *sys_line) {
             if (ParseNumber(token, &lineNumber)) {
                 if (IsBlank(sys_line->linePtr)) {
                     if (!BufDeleteLineN(editBuf, lineNumber))
-                        VM_printf("no line %d\n", lineNumber);
+                        vm_printf("no line %d\n", lineNumber);
                 }
                 else {
                     if (isspace(*sys_line->linePtr))
                         ++sys_line->linePtr;
                     if (!BufAddLineN(editBuf, lineNumber, sys_line->linePtr))
-                        VM_printf("out of edit buffer space\n");
+                        vm_printf("out of edit buffer space\n");
                 }
             }
 
@@ -114,14 +116,19 @@ void EditWorkspace(System_t *sys, System_line_t *sys_line) {
                 if (cmds[i].handler) {
                     editBuf->sys_line = sys_line;
                     (*cmds[i].handler)(editBuf);
-                    VM_printf("OK\n");
+                    vm_printf("OK\n");
                 }
                 else {
-                    VM_printf("Unknown command: %s\n", token);
+                    vm_printf("Unknown command: %s\n", token);
                 }
             }
         }
     }
+}
+
+static void DoHelp(EditBuf_t *buf) {
+    for (uint32_t i = 0; cmds[i].name != NULL; ++i)
+        printf("%s\n", cmds[i].name);
 }
 
 static void DoNew(EditBuf_t *buf) {
@@ -133,7 +140,7 @@ static void DoList(EditBuf_t *buf) {
     int lineNumber;
     BufSeekN(buf, 0);
     while (BufGetLine(buf, &lineNumber, buf->sys_line->lineBuf))
-        VM_printf("%d %s", lineNumber, buf->sys_line->lineBuf);
+        vm_printf("%d %s", lineNumber, buf->sys_line->lineBuf);
 }
 
 static char* EditGetLine(char *buf, int len, int *pLineNumber, void *cookie) {
@@ -142,7 +149,7 @@ static char* EditGetLine(char *buf, int len, int *pLineNumber, void *cookie) {
 }
 
 static void DoRun(EditBuf_t *buf) {
-    System_t *sys = buf->sys;
+    vm_context_t *sys = buf->sys;
     System_line_t *sys_line = buf->sys_line;
     ParseContext_t *c;
     GetLineHandler *getLine;
@@ -152,7 +159,7 @@ static void DoRun(EditBuf_t *buf) {
     sys->nextLow = sys->freeSpace;
 
     if (!(c = InitCompileContext(sys)))
-        VM_printf("insufficient memory");
+        vm_printf("insufficient memory");
     
     GetMainSource(sys_line, &getLine, &getLineCookie);
     
@@ -197,16 +204,16 @@ static void DoLoad(EditBuf_t *buf) {
     
     // check for a program name on the command line
     if (!SetProgramName(buf)) {
-        VM_printf("expecting a file name\n");
+        vm_printf("expecting a file name\n");
         return;
     }
     
     // load the program
     if (!(fp = VM_fopen(buf->programName, "r")))
-        VM_printf("error loading '%s'\n", buf->programName);
+        vm_printf("error loading '%s'\n", buf->programName);
     else {
         System_line_t *sys_line = buf->sys_line;;
-        VM_printf("Loading '%s'\n", buf->programName);
+        vm_printf("Loading '%s'\n", buf->programName);
         BufNew(buf);
         while (VM_fgets(sys_line->lineBuf, sizeof(sys_line->lineBuf), fp) != NULL) {
             BufAddLineN(buf, lineNumber, sys_line->lineBuf);
@@ -221,17 +228,17 @@ static void DoSave(EditBuf_t *buf) {
     
     // check for a program name on the command line
     if (!SetProgramName(buf)) {
-        VM_printf("expecting a file name\n");
+        vm_printf("expecting a file name\n");
         return;
     }
     
     // save the program
     if (!(fp = VM_fopen(buf->programName, "w")))
-        VM_printf("error saving '%s'\n", buf->programName);
+        vm_printf("error saving '%s'\n", buf->programName);
     else {
         System_line_t *sys_line = buf->sys_line;
         int lineNumber;
-        VM_printf("Saving '%s'\n", buf->programName);
+        vm_printf("Saving '%s'\n", buf->programName);
         BufSeekN(buf, 0);
         while (BufGetLine(buf, &lineNumber, sys_line->lineBuf))
             VM_fputs(sys_line->lineBuf, fp);
@@ -246,7 +253,7 @@ static void DoCat(EditBuf_t *buf) {
         while (VM_readdir(&dir, &entry) == 0) {
             int len = strlen(entry.name);
             if (len >= 4 && strcasecmp(&entry.name[len - 4], ".bas") == 0)
-                VM_printf("  %s\n", entry.name);
+                vm_printf("  %s\n", entry.name);
         }
         VM_closedir(&dir);
     }
@@ -285,7 +292,7 @@ static int IsBlank(char *p) {
     return VMTRUE;
 }
 
-static EditBuf_t* BufInit(System_t *sys) {
+static EditBuf_t* BufInit(vm_context_t *sys) {
     EditBuf_t *buf;
     if (!(buf = (EditBuf_t*) AllocateHighMemory(sys, sizeof(EditBuf_t))))
         return NULL;

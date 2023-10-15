@@ -27,7 +27,7 @@ static void Assemble(ParseContext_t *c, char *name);
 // ParseAsm - parse the 'ASM ... END ASM' statement
 void ParseAsm(ParseContext_t *c) {
     ParseTreeNode_t *node = NewParseTreeNode(c, NodeTypeAsmStatement);
-    System_t *sys = c->sys;
+    vm_context_t *sys = c->sys;
     uint8_t *start = sys->nextLow;
     int length;
     int tkn;
@@ -71,10 +71,10 @@ void ParseAsm(ParseContext_t *c) {
 // Assemble - assemble a single line
 static void Assemble(ParseContext_t *c, char *name) {
     GenerateContext_t *g = c->g;
-    OTDEF_t *def;
+    otdef_t *def;
     
     // lookup the opcode
-    for (def = OpcodeTable; def->name != NULL; ++def)
+    for (def = opcode_table; def->name != NULL; ++def)
         if (strcasecmp(name, def->name) == 0) {
             putcbyte(g, def->code);
             switch (def->fmt) {

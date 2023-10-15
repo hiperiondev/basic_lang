@@ -28,62 +28,62 @@
 #include "vmdebug.h"
 #endif
 
-static void DoTrap(Interpreter_t *i, int op) {
+static void vm_do_trap(vm_t *i, int op) {
     switch (op) {
         case TRAP_GetChar:
-            Push(i, i->tos);
-            i->tos = VM_getchar();
+            vm_push(i, i->tos);
+            i->tos = vm_getchar();
             break;
         case TRAP_PutChar:
-            VM_putchar(i->tos);
-            i->tos = Pop(i);
+            vm_putchar(i->tos);
+            i->tos = vm_pop(i);
             break;
         case TRAP_PrintStr:
-            VM_printf("%s", (char*) (i->base + i->tos));
+            vm_printf("%s", (char*) (i->base + i->tos));
             i->tos = *i->sp++;
             break;
         case TRAP_PrintInt:
-            VM_printf("%d", i->tos);
+            vm_printf("%d", i->tos);
             i->tos = *i->sp++;
             break;
         case TRAP_PrintTab:
-            VM_putchar('\t');
+            vm_putchar('\t');
             break;
         case TRAP_PrintNL:
-            VM_putchar('\n');
+            vm_putchar('\n');
             break;
         case TRAP_PrintFlush:
-            VM_flush();
+            vm_flush();
             break;
         default:
-            AbortVM(i, "undefined print opcode 0x%02x", op);
+            vm_abort(i, "undefined print opcode 0x%02x", op);
             break;
     }
 }
 
-void ShowStack(Interpreter_t *i) {
+void vm_show_stack(vm_t *i) {
     VMVALUE *p;
     if (i->sp < i->stackTop) {
-        VM_printf(" %d", i->tos);
+        vm_printf(" %d", i->tos);
         for (p = i->sp; p < i->stackTop - 1; ++p) {
             if (p == i->fp)
-                VM_printf(" <fp>");
-            VM_printf(" %d", *p);
+                vm_printf(" <fp>");
+            vm_printf(" %d", *p);
         }
-        VM_printf("\n");
+        vm_printf("\n");
     }
 }
 
-void StackOverflow(Interpreter_t *i) {
-    AbortVM(i, "stack overflow");
+void vm_stack_overflow(vm_t *i) {
+    vm_abort(i, "stack overflow");
 }
 
-void AbortVM(Interpreter_t *i, const char *fmt, ...) {
+void vm_abort(vm_t *i, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    VM_printf("abort: ");
-    VM_vprintf(fmt, ap);
-    VM_printf("\n");
+    vm_printf("abort: ");
+    vm_printf(fmt, ap);
+    vm_printf("\n");
     va_end(ap);
     if (i)
         longjmp(i->errorTarget, 1);
@@ -91,14 +91,14 @@ void AbortVM(Interpreter_t *i, const char *fmt, ...) {
         exit(1);
 }
 
-// InitInterpreter - initialize the interpreter
-Interpreter_t* InitInterpreter(System_t *sys, uint8_t *base, int stackSize) {
-    Interpreter_t *i;
+// initialize the interpreter
+vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, int stackSize) {
+    vm_t *i;
     
-    if (!(i = (Interpreter_t*) AllocateLowMemory(sys, sizeof(Interpreter_t))))
+    if (!(i = (vm_t*) vm_allocate_low_memory(sys, sizeof(vm_t))))
         return NULL;
 
-    if (!(i->stack = (VMVALUE*) AllocateLowMemory(sys, stackSize * sizeof(VMVALUE))))
+    if (!(i->stack = (VMVALUE*) vm_allocate_low_memory(sys, stackSize * sizeof(VMVALUE))))
         return NULL;
 
     i->base = base;
@@ -108,7 +108,7 @@ Interpreter_t* InitInterpreter(System_t *sys, uint8_t *base, int stackSize) {
 }
 
 // Execute - execute the main code
-int Execute(Interpreter_t *i, VMVALUE mainCode) {
+int vm_execute(vm_t *i, VMVALUE mainCode) {
     VMVALUE tmp;
     int8_t tmpb;
     int cnt;
@@ -122,8 +122,8 @@ int Execute(Interpreter_t *i, VMVALUE mainCode) {
 
     for (;;) {
 #ifdef DEBUG_INTERPRETER
-        ShowStack(i);
-        DecodeInstruction(i->pc - i->base, i->pc);
+        vm_show_stack(i);
+        vmdebug_decode_instruction(i->pc - i->base, i->pc);
 #endif
         switch (VMCODEBYTE(i->pc++)) {
             case OP_HALT:
@@ -133,7 +133,7 @@ int Execute(Interpreter_t *i, VMVALUE mainCode) {
                     tmp = (tmp << 8) | VMCODEBYTE(i->pc++);
                 if (i->tos)
                     i->pc += tmp;
-                i->tos = Pop(i);
+                i->tos = vm_pop(i);
                 break;
             case OP_BRTSC:
                 for (tmp = 0, cnt = sizeof(VMUVALUE); --cnt >= 0;)
@@ -141,14 +141,14 @@ int Execute(Interpreter_t *i, VMVALUE mainCode) {
                 if (i->tos)
                     i->pc += tmp;
                 else
-                    i->tos = Pop(i);
+                    i->tos = vm_pop(i);
                 break;
             case OP_BRF:
                 for (tmp = 0, cnt = sizeof(VMUVALUE); --cnt >= 0;)
                     tmp = (tmp << 8) | VMCODEBYTE(i->pc++);
                 if (!i->tos)
                     i->pc += tmp;
-                i->tos = Pop(i);
+                i->tos = vm_pop(i);
                 break;
             case OP_BRFSC:
                 for (tmp = 0, cnt = sizeof(VMUVALUE); --cnt >= 0;)
@@ -156,7 +156,7 @@ int Execute(Interpreter_t *i, VMVALUE mainCode) {
                 if (!i->tos)
                     i->pc += tmp;
                 else
-                    i->tos = Pop(i);
+                    i->tos = vm_pop(i);
                 break;
             case OP_BR:
                 for (tmp = 0, cnt = sizeof(VMUVALUE); --cnt >= 0;)
@@ -170,81 +170,81 @@ int Execute(Interpreter_t *i, VMVALUE mainCode) {
                 i->tos = -i->tos;
                 break;
             case OP_ADD:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = tmp + i->tos;
                 break;
             case OP_SUB:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = tmp - i->tos;
                 break;
             case OP_MUL:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = tmp * i->tos;
                 break;
             case OP_DIV:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = (i->tos == 0 ? 0 : tmp / i->tos);
                 break;
             case OP_REM:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = (i->tos == 0 ? 0 : tmp % i->tos);
                 break;
             case OP_BNOT:
                 i->tos = ~i->tos;
                 break;
             case OP_BAND:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = tmp & i->tos;
                 break;
             case OP_BOR:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = tmp | i->tos;
                 break;
             case OP_BXOR:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = tmp ^ i->tos;
                 break;
             case OP_SHL:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = tmp << i->tos;
                 break;
             case OP_SHR:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = tmp >> i->tos;
                 break;
             case OP_LT:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = (tmp < i->tos ? VMTRUE : VMFALSE);
                 break;
             case OP_LE:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = (tmp <= i->tos ? VMTRUE : VMFALSE);
                 break;
             case OP_EQ:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = (tmp == i->tos ? VMTRUE : VMFALSE);
                 break;
             case OP_NE:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = (tmp != i->tos ? VMTRUE : VMFALSE);
                 break;
             case OP_GE:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = (tmp >= i->tos ? VMTRUE : VMFALSE);
                 break;
             case OP_GT:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = (tmp > i->tos ? VMTRUE : VMFALSE);
                 break;
             case OP_LIT:
                 for (tmp = 0, cnt = sizeof(VMUVALUE); --cnt >= 0;)
                     tmp = (tmp << 8) | VMCODEBYTE(i->pc++);
-                CPush(i, i->tos);
+                vm_cpush(i, i->tos);
                 i->tos = tmp;
                 break;
             case OP_SLIT:
                 tmpb = (int8_t) VMCODEBYTE(i->pc++);
-                CPush(i, i->tos);
+                vm_cpush(i, i->tos);
                 i->tos = tmpb;
                 break;
             case OP_LOAD:
@@ -254,27 +254,27 @@ int Execute(Interpreter_t *i, VMVALUE mainCode) {
                 i->tos = *(i->base + i->tos);
                 break;
             case OP_STORE:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 *(VMVALUE*) (i->base + i->tos) = tmp;
-                i->tos = Pop(i);
+                i->tos = vm_pop(i);
                 break;
             case OP_STOREB:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 *(i->base + i->tos) = tmp;
-                i->tos = Pop(i);
+                i->tos = vm_pop(i);
                 break;
             case OP_LREF:
                 tmpb = (int8_t) VMCODEBYTE(i->pc++);
-                CPush(i, i->tos);
+                vm_cpush(i, i->tos);
                 i->tos = i->fp[(int) tmpb];
                 break;
             case OP_LSET:
                 tmpb = (int8_t) VMCODEBYTE(i->pc++);
                 i->fp[(int) tmpb] = i->tos;
-                i->tos = Pop(i);
+                i->tos = vm_pop(i);
                 break;
             case OP_INDEX:
-                tmp = Pop(i);
+                tmp = vm_pop(i);
                 i->tos = tmp + i->tos * sizeof(VMVALUE);
                 break;
             case OP_CALL:
@@ -284,39 +284,39 @@ int Execute(Interpreter_t *i, VMVALUE mainCode) {
                 break;
             case OP_CLEAN:
                 cnt = VMCODEBYTE(i->pc++);
-                Drop(i, cnt);
+                vm_drop(i, cnt);
                 break;
             case OP_FRAME:
                 cnt = VMCODEBYTE(i->pc++);
                 tmp = (VMVALUE) (i->fp - i->stack);
                 i->fp = i->sp;
-                Reserve(i, cnt);
+                vm_reserve(i, cnt);
                 i->fp[F_FP] = tmp;
                 break;
             case OP_RETURNZ:
-                CPush(i, i->tos);
+                vm_cpush(i, i->tos);
                 i->tos = 0;
                 //no break
             case OP_RETURN:
-                i->pc = (uint8_t*) i->base + Top(i);
+                i->pc = (uint8_t*) i->base + vm_top(i);
                 i->sp = i->fp;
                 i->fp = (VMVALUE*) (i->stack + i->fp[F_FP]);
                 break;
             case OP_DROP:
-                i->tos = Pop(i);
+                i->tos = vm_pop(i);
                 break;
             case OP_DUP:
-                CPush(i, i->tos);
+                vm_cpush(i, i->tos);
                 break;
             case OP_NATIVE:
                 for (tmp = 0, cnt = sizeof(VMUVALUE); --cnt >= 0;)
                     tmp = (tmp << 8) | VMCODEBYTE(i->pc++);
                 break;
             case OP_TRAP:
-                DoTrap(i, VMCODEBYTE(i->pc++));
+                vm_do_trap(i, VMCODEBYTE(i->pc++));
                 break;
             default:
-                AbortVM(i, "undefined opcode 0x%02x", VMCODEBYTE(i->pc - 1));
+                vm_abort(i, "undefined opcode 0x%02x", VMCODEBYTE(i->pc - 1));
                 break;
         }
     }

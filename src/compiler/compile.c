@@ -23,19 +23,19 @@
 #include "vmint.h"
 
 // InitCompileContext - initialize the compile (parse) context
-ParseContext_t* InitCompileContext(System_t *sys) {
+ParseContext_t* InitCompileContext(vm_context_t *sys) {
     ParseContext_t *c;
     
     if (!(c = InitParseContext(sys))
             || !(c->g = InitGenerateContext(sys)))
-        VM_printf("insufficient memory");
+        vm_printf("insufficient memory");
     return c;
 }
 
 // Compile - parse a program
 void Compile(ParseContext_t *c) {
     VMVALUE mainCode;
-    Interpreter_t *i;
+    vm_t *i;
     Symbol_t *symbol;
     
     // setup an error target
@@ -83,16 +83,16 @@ void Compile(ParseContext_t *c) {
     DumpSymbols(&c->globals, "Globals");
     DumpStrings(c);
     
-    if (!(i = InitInterpreter(c->sys, c->g->codeBuf, 1024)))
-        VM_printf("insufficient memory");
+    if (!(i = vm_initialize(c->sys, c->g->codeBuf, 1024)))
+        vm_printf("insufficient memory");
     else {
-        Execute(i, mainCode);
+        vm_execute(i, mainCode);
     }
 }
 
 // PushFile - push a file onto the input file stack
 int PushFile(ParseContext_t *c, const char *name) {
-    System_t *sys = c->sys;
+    vm_context_t *sys = c->sys;
     IncludedFile_t *inc;
     ParseFile_t *f;
     void *fp;
@@ -104,7 +104,7 @@ int PushFile(ParseContext_t *c, const char *name) {
     
     // add this file to the list of already included files
     if (!(inc = (IncludedFile_t*) AllocateHighMemory(sys, sizeof(IncludedFile_t) + strlen(name))))
-        Abort(sys, "insufficient memory");
+        vm_system_abort(sys, "insufficient memory");
     strcpy(inc->name, name);
     inc->next = c->includedFiles;
     c->includedFiles = inc;
@@ -115,7 +115,7 @@ int PushFile(ParseContext_t *c, const char *name) {
     
     // allocate a parse file structure
     if (!(f = (ParseFile_t*) AllocateHighMemory(sys, sizeof(ParseFile_t))))
-        Abort(sys, "insufficient memory");
+        vm_system_abort(sys, "insufficient memory");
     
     // initialize the parse file structure
     f->fp = fp;

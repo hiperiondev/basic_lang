@@ -21,19 +21,19 @@
 
 #include "vmsystem.h"
 
-// AllocateLowMemory - allocate low memory from the heap
-void* AllocateLowMemory(System_t *sys, size_t size) {
+// allocate low memory from the heap
+void* vm_allocate_low_memory(vm_context_t *sys, size_t size) {
     uint8_t *p = sys->nextLow;
     size = (size + ALIGN_MASK) & ~ALIGN_MASK;
     if (p + size > sys->nextHigh)
-        Abort(sys, "insufficient memory");
+        vm_system_abort(sys, "insufficient memory");
     sys->nextLow += size;
     if (sys->heapSize - (sys->nextHigh - sys->nextLow) > sys->maxHeapUsed)
         sys->maxHeapUsed = sys->heapSize - (sys->nextHigh - sys->nextLow);
     return p;
 }
 
-int VM_getchar(void) {
+int vm_getchar(void) {
     int ch = getchar();
     if (ch == '\r')
         ch = '\n';
@@ -41,19 +41,19 @@ int VM_getchar(void) {
     return ch;
 }
 
-void VM_putchar(int ch) {
+void vm_putchar(int ch) {
     if (ch == '\n')
         putchar('\r');
 
     putchar(ch);
 }
 
-void VM_flush(void) {
+void vm_flush(void) {
     fflush(stdout);
 }
 
 // VM_printf - formatted print
-void VM_printf(const char *fmt, ...) {
+void vm_printf(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     VM_vprintf(fmt, ap);
@@ -64,18 +64,18 @@ void VM_vprintf(const char *fmt, va_list ap) {
     char buf[80], *p = buf;
     vsprintf(buf, fmt, ap);
     while (*p != '\0')
-        VM_putchar(*p++);
+        vm_putchar(*p++);
 }
 
-void Abort(System_t *sys, const char *fmt, ...) {
+void vm_system_abort(vm_context_t *sys, const char *fmt, ...) {
     char buf[100], *p = buf;
     va_list ap;
     va_start(ap, fmt);
-    VM_printf("error: ");
+    vm_printf("error: ");
     vsprintf(buf, fmt, ap);
     while (*p != '\0')
-        VM_putchar(*p++);
-    VM_putchar('\n');
+        vm_putchar(*p++);
+    vm_putchar('\n');
     va_end(ap);
     longjmp(sys->errorTarget, 1);
 }

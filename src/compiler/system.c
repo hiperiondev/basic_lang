@@ -23,11 +23,11 @@
 #include "system.h"
 
 // InitSystem - initialize the compiler
-System_t* InitSystem(uint8_t *freeSpace, size_t freeSize) {
-    System_t *sys = (System_t*) freeSpace;
-    if (freeSize < sizeof(System_t))
+vm_context_t* InitSystem(uint8_t *freeSpace, size_t freeSize) {
+    vm_context_t *sys = (vm_context_t*) freeSpace;
+    if (freeSize < sizeof(vm_context_t))
         return NULL;
-    sys->freeSpace = freeSpace + sizeof(System_t);
+    sys->freeSpace = freeSpace + sizeof(vm_context_t);
     sys->freeTop = freeSpace + freeSize;
     sys->nextLow = sys->freeSpace;
     sys->nextHigh = sys->freeTop;
@@ -37,10 +37,10 @@ System_t* InitSystem(uint8_t *freeSpace, size_t freeSize) {
 }
 
 // AllocateHighMemory - allocate high memory from the heap
-void* AllocateHighMemory(System_t *sys, size_t size) {
+void* AllocateHighMemory(vm_context_t *sys, size_t size) {
     size = (size + ALIGN_MASK) & ~ALIGN_MASK;
     if (sys->nextHigh - size < sys->nextLow)
-        Abort(sys, "insufficient memory");
+        vm_system_abort(sys, "insufficient memory");
     sys->nextHigh -= size;
     if (sys->heapSize - (sys->nextHigh - sys->nextLow) > sys->maxHeapUsed)
         sys->maxHeapUsed = sys->heapSize - (sys->nextHigh - sys->nextLow);
@@ -67,7 +67,7 @@ int GetLine(System_line_t *sys, int *pLineNumber) {
     return VMTRUE;
 }
 
-void* VM_open(System_t *sys, const char *name, const char *mode) {
+void* VM_open(vm_context_t *sys, const char *name, const char *mode) {
     return (void*) fopen(name, mode);
 }
 

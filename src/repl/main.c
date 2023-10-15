@@ -41,12 +41,12 @@ uint8_t workspace[WORKSPACE_SIZE];
 static char* GetConsoleLine(char *buf, int size, int *pLineNumber, void *cookie);
 
 int main(int argc, char *argv[]) {
-    System_t *sys = InitSystem(workspace, sizeof(workspace));
+    vm_context_t *sys = InitSystem(workspace, sizeof(workspace));
     System_line_t *sys_line = malloc(sizeof(System_line_t));
 
     if (sys) {
         sys_line->getLine = GetConsoleLine;
-        EditWorkspace(sys, sys_line);
+        edit_workspace(sys, sys_line);
     }
 
     free(sys_line);
@@ -56,25 +56,25 @@ int main(int argc, char *argv[]) {
 static char *GetConsoleLine(char *buf, int size, int *pLineNumber, void *cookie) {
     int i = 0;
     while (i < size - 1) {
-        int ch = VM_getchar();
+        int ch = vm_getchar();
         if (ch == '\n') {
             buf[i++] = '\n';
-            VM_putchar('\n');
+            vm_putchar('\n');
             break;
         }
         else if (ch == '\b' || ch == 0x7f) {
             if (i > 0) {
                 if (ch == 0x7f)
-                    VM_putchar('\b');
-                VM_putchar(' ');
-                VM_putchar('\b');
-                VM_flush();
+                    vm_putchar('\b');
+                vm_putchar(' ');
+                vm_putchar('\b');
+                vm_flush();
                 --i;
             }
         }
         else {
             buf[i++] = ch;
-            VM_flush();
+            vm_flush();
         }
     }
     buf[i] = '\0';

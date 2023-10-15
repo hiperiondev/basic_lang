@@ -40,7 +40,7 @@ Symbol_t* AddGlobal(ParseContext_t *c, const char *name, StorageClass_t storageC
     Symbol_t *sym;
     
     // allocate the symbol structure
-    sym = (Symbol_t*) AllocateLowMemory(c->sys, size);
+    sym = (Symbol_t*) vm_allocate_low_memory(c->sys, size);
     strcpy(sym->name, name);
     sym->placed = VMFALSE;
     sym->storageClass = storageClass;
@@ -119,8 +119,8 @@ static Symbol_t* FindSymbol(SymbolTable_t *table, const char *name) {
 void DumpSymbols(SymbolTable_t *table, const char *tag) {
     Symbol_t *sym;
     if ((sym = table->head) != NULL) {
-        VM_printf("%s:\n", tag);
+        vm_printf("%s:\n", tag);
         for (; sym != NULL; sym = sym->next)
-            VM_printf("  %s %08x%s\n", sym->name, sym->value, sym->placed ? "" : " <undefined>");
+            vm_printf("  %s %08x%s\n", sym->name, sym->value, sym->placed ? "" : " <undefined>");
     }
 }

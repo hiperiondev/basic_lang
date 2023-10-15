@@ -616,15 +616,15 @@ void ParseError(ParseContext_t *c, const char *fmt, ...) {
 
     // print the error message
     va_start(ap, fmt);
-    VM_printf("error: ");
-    VM_vprintf(fmt, ap);
-    VM_putchar('\n');
+    vm_printf("error: ");
+    vm_printf(fmt, ap);
+    vm_putchar('\n');
     va_end(ap);
 
     // show the context
-    VM_printf("  line %d\n", c->lineNumber);
-    VM_printf("    %s", c->sys_line->lineBuf);
-    VM_printf("    %*s^\n", c->tokenOffset, "");
+    vm_printf("  line %d\n", c->lineNumber);
+    vm_printf("    %s", c->sys_line->lineBuf);
+    vm_printf("    %*s^\n", c->tokenOffset, "");
 
     // exit until we fix the compiler so it can recover from parse errors
     longjmp(c->sys->errorTarget, 1);

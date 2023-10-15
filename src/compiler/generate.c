@@ -83,7 +83,7 @@ static void GenerateError(GenerateContext_t *c, const char *fmt, ...);
 static void GenerateFatal(GenerateContext_t *c, const char *fmt, ...);
 
 // InitGenerateContext - initialize a generate context
-GenerateContext_t* InitGenerateContext(System_t *sys) {
+GenerateContext_t* InitGenerateContext(vm_context_t *sys) {
     GenerateContext_t *g;
     if (!(g = (GenerateContext_t*) AllocateHighMemory(sys, sizeof(GenerateContext_t))))
         return NULL;
@@ -222,7 +222,7 @@ static void code_expr(GenerateContext_t *c, ParseTreeNode_t *expr, PVAL_t *pv) {
 
 // code_function_definition - generate code for a function definition
 static void code_function_definition(GenerateContext_t *c, ParseTreeNode_t *node) {
-    System_t *sys = c->sys;
+    vm_context_t *sys = c->sys;
     uint8_t *base = sys->nextLow;
     size_t codeSize;
     VMVALUE code = codeaddr(c);
@@ -350,7 +350,7 @@ static void code_return_statement(GenerateContext_t *c, ParseTreeNode_t *node) {
 
 // code_asm_statement - generate code for an ASM statement
 static void code_asm_statement(GenerateContext_t *c, ParseTreeNode_t *node) {
-    System_t *sys = c->sys;
+    vm_context_t *sys = c->sys;
     int length = node->u.asmStatement.length;
     if (sys->nextLow + length > sys->nextHigh)
         GenerateFatal(c, "insufficient memory");
@@ -470,7 +470,7 @@ VMVALUE codeaddr(GenerateContext_t *c) {
 
 // putcbyte - put a code byte into the code buffer
 VMVALUE putcbyte(GenerateContext_t *c, int b) {
-    System_t *sys = c->sys;
+    vm_context_t *sys = c->sys;
     VMVALUE addr = codeaddr(c);
     if (sys->nextLow >= sys->nextHigh)
         GenerateFatal(c, "bytecode buffer overflow");
@@ -480,7 +480,7 @@ VMVALUE putcbyte(GenerateContext_t *c, int b) {
 
 // putcword - put a code word into the code buffer
 VMVALUE putcword(GenerateContext_t *c, VMVALUE w) {
-    System_t *sys = c->sys;
+    vm_context_t *sys = c->sys;
     VMVALUE addr = codeaddr(c);
     uint8_t *p;
     int cnt = sizeof(VMVALUE);
@@ -497,7 +497,7 @@ VMVALUE putcword(GenerateContext_t *c, VMVALUE w) {
 
 // putdword - put a code word into the code buffer
 VMVALUE putdword(GenerateContext_t *c, VMVALUE w) {
-    System_t *sys = c->sys;
+    vm_context_t *sys = c->sys;
     VMVALUE addr = codeaddr(c);
     if (sys->nextLow + sizeof(VMVALUE) > sys->nextHigh)
         GenerateFatal(c, "bytecode buffer overflow");
@@ -581,9 +581,9 @@ VMVALUE StoreVector(GenerateContext_t *c, const VMVALUE *buf, int size) {
 
 // StoreByteVector - store a byte vector
 VMVALUE StoreByteVector(GenerateContext_t *c, const uint8_t *buf, int size) {
-    System_t *sys = c->sys;
+    vm_context_t *sys = c->sys;
     uint8_t *p;
-    if (!(p = AllocateLowMemory(sys, size)))
+    if (!(p = vm_allocate_low_memory(sys, size)))
         return 0;
     memcpy(p, buf, size);
     return p - sys->freeSpace;
@@ -593,9 +593,9 @@ VMVALUE StoreByteVector(GenerateContext_t *c, const uint8_t *buf, int size) {
 void DumpFunctions(GenerateContext_t *c) {
     int i;
     for (i = 0; i < functionCount; ++i) {
-        VM_printf("function '%s':\n", functions[i].symbol ? functions[i].symbol->name : "<main>");
-        DecodeFunction(functions[i].code, c->codeBuf + functions[i].code, functions[i].codeLen);
-        VM_printf("\n");
+        vm_printf("function '%s':\n", functions[i].symbol ? functions[i].symbol->name : "<main>");
+        vmdebug_decode_function(functions[i].code, c->codeBuf + functions[i].code, functions[i].codeLen);
+        vm_printf("\n");
     }
 }
 
@@ -603,8 +603,8 @@ void DumpFunctions(GenerateContext_t *c) {
 static void GenerateError(GenerateContext_t *c, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    VM_printf("error: ");
-    VM_vprintf(fmt, ap);
+    vm_printf("error: ");
+    vm_printf(fmt, ap);
     va_end(ap);
 }
 
@@ -612,8 +612,8 @@ static void GenerateError(GenerateContext_t *c, const char *fmt, ...) {
 static void GenerateFatal(GenerateContext_t *c, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    VM_printf("fatal: ");
-    VM_vprintf(fmt, ap);
-    VM_putchar('\n');
+    vm_printf("fatal: ");
+    vm_printf(fmt, ap);
+    vm_putchar('\n');
     va_end(ap);
 }

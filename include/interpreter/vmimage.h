@@ -23,13 +23,7 @@
 
 #include "vmtypes.h"
 
-// get the size of an object in words
-#define GetObjSizeInWords(s)    (((s) + sizeof(VMVALUE) - 1) / sizeof(VMVALUE))
-
 #define F_SIZE     1
-
-// nothing
-#define NIL        (VMVALUE)0
 
 // opcodes
 enum OPCODES {

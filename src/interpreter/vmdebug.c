@@ -23,7 +23,7 @@
 #include "vmdebug.h"
 #include "vmsystem.h"
 
-OTDEF_t OpcodeTable[] = {
+otdef_t opcode_table[] = {
         { OP_HALT   , "HALT"   , FMT_NONE   },
         { OP_BRT    , "BRT"    , FMT_BR     },
         { OP_BRTSC  , "BRTSC"  , FMT_BR     },
@@ -72,77 +72,77 @@ OTDEF_t OpcodeTable[] = {
 };
 
 // DecodeFunction - decode the instructions in a function code object
-void DecodeFunction(VMUVALUE base, const uint8_t *code, int len) {
+void vmdebug_decode_function(VMUVALUE base, const uint8_t *code, int len) {
     const uint8_t *end = code + len;
     while (code < end) {
-        int len = DecodeInstruction(base, code);
+        int len = vmdebug_decode_instruction(base, code);
         code += len;
         base += len;
     }
 }
 
 // DecodeInstruction - decode a single bytecode instruction
-int DecodeInstruction(VMUVALUE addr, const uint8_t *lc) {
+int vmdebug_decode_instruction(VMUVALUE addr, const uint8_t *lc) {
     uint8_t opcode, bytes[sizeof(VMVALUE)];
     VMVALUE offset = 0;
     int8_t sbyte;
-    OTDEF_t *op;
+    otdef_t *op;
     int n, i;
 
     // get the opcode
     opcode = VMCODEBYTE(lc);
 
     // show the address
-    VM_printf("%0*x %02x ", sizeof(VMVALUE) * 2, addr, opcode);
+    vm_printf("%0*x %02x ", sizeof(VMVALUE) * 2, addr, opcode);
     n = 1;
 
     // display the operands
-    for (op = OpcodeTable; op->name; ++op)
+    for (op = opcode_table; op->name; ++op)
         if (opcode == op->code) {
             switch (op->fmt) {
                 case FMT_NONE:
                     for (i = 0; i < sizeof(VMVALUE); ++i)
-                        VM_printf("   ");
-                    VM_printf("%s\n", op->name);
+                        vm_printf("   ");
+                    vm_printf("%s\n", op->name);
                     break;
                 case FMT_BYTE:
                     bytes[0] = VMCODEBYTE(lc + 1);
-                    VM_printf("%02x ", bytes[0]);
+                    vm_printf("%02x ", bytes[0]);
                     for (i = 1; i < sizeof(VMVALUE); ++i)
-                        VM_printf("   ");
-                    VM_printf("%s %02x\n", op->name, bytes[0]);
+                        vm_printf("   ");
+                    vm_printf("%s %02x\n", op->name, bytes[0]);
                     n += 1;
                     break;
                 case FMT_SBYTE:
                     sbyte = (int8_t) VMCODEBYTE(lc + 1);
-                    VM_printf("%02x ", (uint8_t) sbyte);
+                    vm_printf("%02x ", (uint8_t) sbyte);
                     for (i = 1; i < sizeof(VMVALUE); ++i)
-                        VM_printf("   ");
-                    VM_printf("%s %d\n", op->name, sbyte);
+                        vm_printf("   ");
+                    vm_printf("%s %d\n", op->name, sbyte);
                     n += 1;
                     break;
                 case FMT_WORD:
                     case FMT_NATIVE:
                     for (i = 0; i < sizeof(VMVALUE); ++i) {
                         bytes[i] = VMCODEBYTE(lc + i + 1);
-                        VM_printf("%02x ", bytes[i]);
+                        vm_printf("%02x ", bytes[i]);
                     }
-                    VM_printf("%s ", op->name);
+                    vm_printf("%s ", op->name);
                     for (i = 0; i < sizeof(VMVALUE); ++i)
-                        VM_printf("%02x", bytes[i]);
-                    VM_printf("\n");
+                        vm_printf("%02x", bytes[i]);
+                    vm_printf("\n");
                     n += sizeof(VMVALUE);
                     break;
                 case FMT_BR:
                     for (i = 0; i < sizeof(VMVALUE); ++i) {
                         bytes[i] = VMCODEBYTE(lc + i + 1);
                         offset = (offset << 8) | bytes[i];
-                        VM_printf("%02x ", bytes[i]);
+                        vm_printf("%02x ", bytes[i]);
                     }
-                    VM_printf("%s ", op->name);
+                    vm_printf("%s ", op->name);
                     for (i = 0; i < sizeof(VMVALUE); ++i)
-                        VM_printf("%02x", bytes[i]);
-                    VM_printf(" # %04x\n", addr + 1 + sizeof(VMVALUE) + offset);
+                        vm_printf("%02x", bytes[i]);
+                    vm_printf(" # %04x\n", addr + 1 + sizeof(VMVALUE) + offset);
                     n += sizeof(VMVALUE);
                     break;
             }
@@ -150,6 +150,6 @@ int DecodeInstruction(VMUVALUE addr, const uint8_t *lc) {
         }
 
     // unknown opcode
-    VM_printf("      <UNKNOWN>\n");
+    vm_printf("      <UNKNOWN>\n");
     return 1;
 }

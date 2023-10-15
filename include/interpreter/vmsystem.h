@@ -24,14 +24,8 @@
 
 #include "vmtypes.h"
 
-// program limits
-#define MAXLINE  128
-
-// line input handler
-typedef char* GetLineHandler(char *buf, int len, int *pLineNumber, void *cookie);
-
 // system context
-typedef struct System_s {
+typedef struct vm_context_s {
            jmp_buf errorTarget;      // error target
            uint8_t *freeSpace;       // base of free space
            uint8_t *freeNext;        // next free space available
@@ -40,15 +34,15 @@ typedef struct System_s {
            uint8_t *nextLow;         // next low memory heap space location
             size_t heapSize;         // size of heap space in bytes
             size_t maxHeapUsed;      // maximum amount of heap space allocated so far
-} System_t;
+} vm_context_t;
 
-void* AllocateLowMemory(System_t *sys, size_t size);
- void Abort(System_t *sys, const char *fmt, ...);
+void* vm_allocate_low_memory(vm_context_t *sys, size_t size);
+ void vm_system_abort(vm_context_t *sys, const char *fmt, ...);
 
-  int VM_getchar(void);
- void VM_printf(const char *fmt, ...);
+  int vm_getchar(void);
+ void vm_printf(const char *fmt, ...);
  void VM_vprintf(const char *fmt, va_list ap);
- void VM_putchar(int ch);
- void VM_flush(void);
+ void vm_putchar(int ch);
+ void vm_flush(void);
 
 #endif /* __VMSYSTEM_H__ */

@@ -106,7 +106,7 @@ static void PopBlock(ParseContext_t *c);
 static int IsIntegerLit(ParseTreeNode_t *node);
 
 // InitParseContext - parse a statement
-ParseContext_t* InitParseContext(System_t *sys) {
+ParseContext_t* InitParseContext(vm_context_t *sys) {
     ParseContext_t *c = (ParseContext_t*) AllocateHighMemory(sys, sizeof(ParseContext_t));
     if (c) {
         memset(c, 0, sizeof(ParseContext_t));
@@ -1458,7 +1458,7 @@ static String_t* AddString(ParseContext_t *c, const char *value) {
             return str;
 
     // allocate the string structure
-    str = (String_t*) AllocateLowMemory(c->sys, sizeof(String_t) + strlen(value));
+    str = (String_t*) vm_allocate_low_memory(c->sys, sizeof(String_t) + strlen(value));
     memset(str, 0, sizeof(String_t));
     strcpy(str->data, value);
     str->next = c->strings;
@@ -1472,8 +1472,8 @@ static String_t* AddString(ParseContext_t *c, const char *value) {
 void DumpStrings(ParseContext_t *c) {
     String_t *str = c->strings;
     if (str) {
-        VM_printf("Strings:\n");
+        vm_printf("Strings:\n");
         for (; str != NULL; str = str->next)
-            VM_printf("  '%s' %08x\n", str->data, (VMVALUE) ((uint8_t*) str->data - c->g->codeBuf));
+            vm_printf("  '%s' %08x\n", str->data, (VMVALUE) ((uint8_t*) str->data - c->g->codeBuf));
     }
 }

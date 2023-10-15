@@ -33,11 +33,11 @@ typedef struct {
      int code;
     char *name;
      int fmt;
-} OTDEF_t;
+} otdef_t;
 
-extern OTDEF_t OpcodeTable[];
+extern otdef_t opcode_table[];
 
-void DecodeFunction(VMUVALUE base, const uint8_t *code, int len);
- int DecodeInstruction(VMUVALUE addr, const uint8_t *lc);
+void vmdebug_decode_function(VMUVALUE base, const uint8_t *code, int len);
+ int vmdebug_decode_instruction(VMUVALUE addr, const uint8_t *lc);
 
 #endif

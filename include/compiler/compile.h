@@ -200,7 +200,7 @@ struct Symbol_s {
 
 // parse context
 typedef struct {
-             System_t *sys;                // system context
+         vm_context_t *sys;                // system context
         System_line_t *sys_line;           // input line
     GenerateContext_t *g;                  // generate - generate context
           ParseFile_t *currentFile;        // current input file
@@ -336,11 +336,11 @@ struct NodeListEntry_s {
 };
 
 // compile.c
- ParseContext_t* InitCompileContext(System_t *sys);
+ ParseContext_t* InitCompileContext(vm_context_t *sys);
             void Compile(ParseContext_t *c);
 
 // parse.c
- ParseContext_t* InitParseContext(System_t *sys);
+ ParseContext_t* InitParseContext(vm_context_t *sys);
              int PushFile(ParseContext_t *c, const char *name);
              int ParseGetLine(ParseContext_t *c);
 ParseTreeNode_t* StartFunction(ParseContext_t *c, Symbol_t *symbol);
@@ -378,7 +378,7 @@ ParseTreeNode_t* NewParseTreeNode(ParseContext_t *c, int type);
             void DumpSymbols(SymbolTable_t *table, const char *tag);
 
 // generate.c
-GenerateContext_t* InitGenerateContext(System_t *sys);
+GenerateContext_t* InitGenerateContext(vm_context_t *sys);
            VMVALUE Generate(GenerateContext_t *c, ParseTreeNode_t *node);
               void PlaceSymbol(GenerateContext_t *c, Symbol_t *sym, VMUVALUE offset);
            VMVALUE StoreVector(GenerateContext_t *c, const VMVALUE *buf, int size);
