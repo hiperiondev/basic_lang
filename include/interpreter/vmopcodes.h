@@ -66,7 +66,7 @@ enum OPCODES {
     OP_DUP,     // 0x26 duplicate the top element of the stack
     OP_NATIVE,  // 0x27 execute native code
     OP_TRAP,    // 0x28 trap to handler
-    OP_RETURNZ, // 0x29
+    OP_RETURNZ, // 0x29 return zero elements
     OP_CLEAN    // 0x2c drop n elements
 };
 

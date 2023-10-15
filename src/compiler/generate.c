@@ -404,8 +404,11 @@ static void code_call(GenerateContext_t *c, ParseTreeNode_t *expr) {
     // call the function
     putcbyte(c, OP_CALL);
     if (expr->u.functionCall.argc > 0) {
-        putcbyte(c, OP_CLEAN);
-        putcbyte(c, expr->u.functionCall.argc);
+        if (expr->u.functionCall.argc > 1) {
+            putcbyte(c, OP_CLEAN);
+            putcbyte(c, expr->u.functionCall.argc);
+        } else
+            putcbyte(c, OP_DROP);
     }
 }
 
