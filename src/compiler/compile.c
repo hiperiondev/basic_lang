@@ -20,7 +20,7 @@
 #include <string.h>
 
 #include "compile.h"
-#include "vmint.h"
+#include "vm.h"
 
 // InitCompileContext - initialize the compile (parse) context
 ParseContext_t* InitCompileContext(vm_context_t *sys) {

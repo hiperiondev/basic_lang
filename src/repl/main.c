@@ -72,6 +72,11 @@ int main(int argc, char *argv[]) {
 
     if (sys) {
         sys_line.getLine = GetConsoleLine;
+        vm_printf("///////////////////////////////////////////\n");
+        vm_printf("//////// BASIC                     ////////\n");
+        vm_printf("////////     for commands use HELP ////////\n");
+        vm_printf("///////////////////////////////////////////\n");
+
         edit_workspace(sys, &sys_line);
     }
 

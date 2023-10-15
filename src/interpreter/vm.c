@@ -19,7 +19,7 @@
 #include <stdlib.h>
 
 #include "vmopcodes.h"
-#include "vmint.h"
+#include "vm.h"
 #include "vmsystem.h"
 
 #ifdef VM_DEBUG
