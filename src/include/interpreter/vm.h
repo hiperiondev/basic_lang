@@ -46,9 +46,11 @@ enum {
 typedef struct vm_s {
             bool code_referenced;
          uint8_t *base;
+         uint32_t codelen;
          jmp_buf errorTarget;
          VMVALUE *stack;
          VMVALUE *stackTop;
+        uint32_t stack_size;
          uint8_t *pc;
          VMVALUE *fp;
          VMVALUE *sp;

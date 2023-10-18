@@ -55,13 +55,16 @@ vm_t* vm_init(uint8_t *code, uint32_t code_len, VMVALUE stackSize, bool referenc
         return NULL;
 
     i->stackTop = i->stack + stackSize;
+    i->codelen = code_len;
+    i->stack_size = stackSize;
 
     if (reference_code) {
         i->base = code;
         i->code_referenced = true;
     } else {
         i->base = malloc(code_len * sizeof(uint8_t));
-        memcpy(i->base, code, code_len);
+        if (code != NULL)
+            memcpy(i->base, code, code_len);
         i->code_referenced = false;
     }
 

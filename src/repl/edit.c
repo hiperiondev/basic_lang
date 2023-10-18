@@ -53,6 +53,8 @@ static void DoRun(EditBuf_t *buf);
 static void DoRenum(EditBuf_t *buf);
 static void DoLoad(EditBuf_t *buf);
 static void DoSave(EditBuf_t *buf);
+static void DoSaveBin(EditBuf_t *buf);
+static void DoRunBin(EditBuf_t *buf);
 static void DoCat(EditBuf_t *buf);
 static void DoHelp(EditBuf_t *buf);
 
@@ -62,16 +64,25 @@ static struct {
     void (*handler)(EditBuf_t *buf);
     char *help;
 } cmds[] = {
-        { "NEW"  , DoNew  , "create new file" },
-        { "LIST" , DoList , "list loaded program" },
-        { "RUN"  , DoRun  , "run loaded file" },
-        { "RENUM", DoRenum, "renumber program lines" },
-        { "LOAD" , DoLoad , "load file" },
-        { "SAVE" , DoSave , "save program" },
-        { "CAT"  , DoCat  , "show file content" },
-        { "HELP" , DoHelp , "this help" },
-        { NULL   , NULL   , NULL }
+        { "NEW"     , DoNew    , "create new file"            },
+        { "LIST"    , DoList   , "list loaded program"        },
+        { "RUN"     , DoRun    , "run loaded file"            },
+        { "RENUM"   , DoRenum  , "renumber program lines"     },
+        { "LOAD"    , DoLoad   , "load file"                  },
+        { "SAVE"    , DoSave   , "save program"               },
+        { "SAVEBIN" , DoSaveBin, "save compiled file"         },
+        { "RUNBIN"  , DoRunBin , "load and run compiled file" },
+        { "CAT"     , DoCat    , "show file content"          },
+        { "HELP"    , DoHelp   , "this help"                  },
+        { NULL      , NULL     , NULL                         }
 };
+
+ParseContext_t *c;
+vm_context_t *sys;
+System_line_t *sys_line;
+GetLineHandler *getLine;
+void *getLineCookie;
+vm_t *i;
 
 // prototypes
 static char* NextToken(System_line_t *sys);
@@ -152,13 +163,9 @@ static char* EditGetLine(char *buf, int len, int *pLineNumber, void *cookie) {
     return BufGetLine(editBuf, pLineNumber, buf);
 }
 
-static void DoRun(EditBuf_t *buf) {
-    vm_context_t *sys = buf->sys;
-    System_line_t *sys_line = buf->sys_line;
-    ParseContext_t *c;
-    GetLineHandler *getLine;
-    void *getLineCookie;
-    vm_t *i;
+static void compileProgram(EditBuf_t *buf) {
+    sys = buf->sys;
+    sys_line = buf->sys_line;
     
     sys->nextHigh = buf->buffer;
     sys->nextLow = sys->freeSpace;
@@ -173,7 +180,10 @@ static void DoRun(EditBuf_t *buf) {
 
     c->sys_line = buf->sys_line;
     Compile(c);
+}
 
+static void DoRun(EditBuf_t *buf) {
+    compileProgram(buf);
     if (!(i = vm_init(c->g->codeBuf, c->g->code_len, 1024, false)))
         vm_printf("insufficient memory");
     else {
@@ -255,6 +265,65 @@ static void DoSave(EditBuf_t *buf) {
         while (BufGetLine(buf, &lineNumber, sys_line->lineBuf))
             VM_fputs(sys_line->lineBuf, fp);
         VM_fclose(fp);
+    }
+}
+
+static void DoSaveBin(EditBuf_t *buf) {
+    VMFILE *fp;
+
+    // check for a program name on the command line
+    if (!SetProgramName(buf)) {
+        vm_printf("expecting a file name\n");
+        return;
+    }
+
+    // save compiled program
+    if (!(fp = VM_fopen(buf->programName, "w")))
+        vm_printf("error saving '%s'\n", buf->programName);
+    else {
+        compileProgram(buf);
+        if (!(i = vm_init(c->g->codeBuf, c->g->code_len, 1024, false)))
+            vm_printf("insufficient memory");
+        else {
+            VM_fwrite(&c->g->mainCode, sizeof(uint32_t), 1, fp);
+            VM_fwrite(&i->codelen, sizeof(uint32_t), 1, fp);
+            VM_fwrite(&i->stack_size, sizeof(uint32_t), 1, fp);
+            VM_fwrite(i->base, i->codelen, 1, fp);
+            VM_fclose(fp);
+            vm_deinit(i);
+        }
+    }
+
+    system_set_main_source(sys_line, getLine, getLineCookie);
+}
+
+static void DoRunBin(EditBuf_t *buf) {
+    VMFILE *fp;
+    uint32_t mainCode, codeLen, stackSize;
+
+    // check for a program name on the command line
+    if (!SetProgramName(buf)) {
+        vm_printf("expecting a file name\n");
+        return;
+    }
+
+    // load the program
+    if (!(fp = VM_fopen(buf->programName, "r")))
+        vm_printf("error loading '%s'\n", buf->programName);
+    else {
+        VM_fread(&mainCode, sizeof(uint32_t), 1, fp);
+        VM_fread(&codeLen, sizeof(uint32_t), 1, fp);
+        VM_fread(&stackSize, sizeof(uint32_t), 1, fp);
+
+        if (!(i = vm_init(NULL, codeLen, 1024, false)))
+            vm_printf("insufficient memory");
+        else {
+            VM_fread(i->base, codeLen * sizeof(uint8_t), 1, fp);
+            VM_fclose(fp);
+
+            vm_execute(i, mainCode);
+            vm_deinit(i);
+        }
     }
 }
 

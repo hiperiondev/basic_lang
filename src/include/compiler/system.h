@@ -39,6 +39,8 @@ typedef FILE VMFILE;
 #define VM_fclose   fclose
 #define VM_fgets    fgets
 #define VM_fputs    fputs
+#define VM_fwrite   fwrite
+#define VM_fread    fread
 
 typedef struct {
     DIR *dirp;
