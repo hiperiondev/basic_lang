@@ -33,15 +33,14 @@ ParseContext_t* InitCompileContext(vm_context_t *sys) {
 }
 
 // Compile - parse a program
-uint32_t Compile(ParseContext_t *c) {
-    VMVALUE mainCode;
+void Compile(ParseContext_t *c) {
     Symbol_t *symbol;
     
     uint8_t *init_mem = c->sys->nextLow;
 
     // setup an error target
     if (setjmp(c->sys->errorTarget) != 0)
-        return 0;
+        return;
 
     // initialize the string table
     c->strings = NULL;
@@ -69,7 +68,7 @@ uint32_t Compile(ParseContext_t *c) {
     PrintNode(c->mainFunction, 0);
     
     // generate code for the main function
-    mainCode = Generate(c->g, c->mainFunction);
+    c->g->mainCode = Generate(c->g, c->mainFunction);
     c->g->code_len = c->sys->nextLow - init_mem;
 
     // store all implicitly declared global variables
@@ -84,8 +83,6 @@ uint32_t Compile(ParseContext_t *c) {
     DumpFunctions(c->g);
     DumpSymbols(&c->globals, "Globals");
     DumpStrings(c);
-
-    return mainCode;
 }
 
 // PushFile - push a file onto the input file stack

@@ -159,7 +159,6 @@ static void DoRun(EditBuf_t *buf) {
     GetLineHandler *getLine;
     void *getLineCookie;
     vm_t *i;
-    uint32_t mainCode;
     
     sys->nextHigh = buf->buffer;
     sys->nextLow = sys->freeSpace;
@@ -173,12 +172,12 @@ static void DoRun(EditBuf_t *buf) {
     BufSeekN(buf, 0);
 
     c->sys_line = buf->sys_line;
-    mainCode = Compile(c);
+    Compile(c);
 
     if (!(i = vm_init(c->g->codeBuf, c->g->code_len, 1024, false)))
         vm_printf("insufficient memory");
     else {
-        vm_execute(i, mainCode);
+        vm_execute(i, c->g->mainCode);
         vm_deinit(i);
     }
 

@@ -340,7 +340,7 @@ struct NodeListEntry_s {
 
 // compile.c
  ParseContext_t* InitCompileContext(vm_context_t *sys);
-        uint32_t Compile(ParseContext_t *c);
+            void Compile(ParseContext_t *c);
 
 // parse.c
  ParseContext_t* InitParseContext(vm_context_t *sys);
