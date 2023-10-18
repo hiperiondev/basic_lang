@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "vmopcodes.h"
 #include "vm.h"
@@ -32,10 +33,6 @@
 #include "vmtrap.h"
 #endif
 
-void vm_stack_overflow(vm_t *i) {
-    vm_abort(i, "stack overflow");
-}
-
 void vm_abort(vm_t *i, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -48,19 +45,31 @@ void vm_abort(vm_t *i, const char *fmt, ...) {
 }
 
 // initialize the interpreter
-vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, VMVALUE stackSize) {
+vm_t* vm_init(uint8_t *code, uint32_t code_len, VMVALUE stackSize) {
     vm_t *i;
-    
-    if (!(i = (vm_t*) vm_allocate_low_memory(sys, sizeof(vm_t))))
+
+    if (!(i = (vm_t*) malloc(sizeof(vm_t))))
         return NULL;
 
-    if (!(i->stack = (VMVALUE*) vm_allocate_low_memory(sys, stackSize * sizeof(VMVALUE))))
+    if (!(i->stack = (VMVALUE*) malloc(stackSize * sizeof(VMVALUE))))
         return NULL;
 
-    i->base = base;
     i->stackTop = i->stack + stackSize;
-    
+
+    i->base = malloc(code_len * sizeof(uint8_t));
+    memcpy(i->base, code, code_len);
+
     return i;
+}
+
+void vm_deinit(vm_t *i) {
+    if (i == NULL)
+        return;
+
+    free(i->stack);
+    free(i->base);
+    free(i);
+
 }
 
 // execute the main code

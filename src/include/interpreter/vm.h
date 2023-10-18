@@ -56,29 +56,31 @@ typedef struct vm_s {
 #define F_FP    -1
 
 // stack manipulation macros
-#define vm_reserve(i, n)  if ((i)->sp - (n) < (i)->stack) \
-                              vm_stack_overflow(i);       \
-                          else  {                         \
-                              int _cnt = (n);             \
-                              while (--_cnt >= 0)         \
-                              vm_push(i, 0);              \
-                          }
+#define vm_stack_overflow(i) vm_abort(i, "stack overflow")
 
-#define vm_cpush(i, v)    if ((i)->sp - 1 < (i)->stack)   \
-                              vm_stack_overflow(i);       \
-                          else                            \
-                              vm_push(i, v);
+#define vm_reserve(i, n)     if ((i)->sp - (n) < (i)->stack) \
+                                 vm_stack_overflow(i);       \
+                             else  {                         \
+                                 int _cnt = (n);             \
+                                 while (--_cnt >= 0)         \
+                                 vm_push(i, 0);              \
+                             }
 
-#define vm_push(i, v)     (*--(i)->sp = (v))
-#define vm_pop(i)         (*(i)->sp++)
-#define vm_top(i)         (*(i)->sp)
-#define vm_drop(i, n)     ((i)->sp += (n))
+#define vm_cpush(i, v)       if ((i)->sp - 1 < (i)->stack)   \
+                                 vm_stack_overflow(i);       \
+                             else                            \
+                                 vm_push(i, v);
+
+#define vm_push(i, v)        (*--(i)->sp = (v))
+#define vm_pop(i)            (*(i)->sp++)
+#define vm_top(i)            (*(i)->sp)
+#define vm_drop(i, n)        ((i)->sp += (n))
 
 // prototypes from db_vmint.c
-  vm_t* vm_initialize(vm_context_t *sys, uint8_t *base, VMVALUE stackSize);
+  vm_t* vm_init(uint8_t *code, uint32_t code_len, VMVALUE stackSize);
+   void vm_deinit(vm_t *i);
 uint8_t vm_execute(vm_t *i, VMVALUE mainCode);
    void vm_abort(vm_t *i, const char *fmt, ...);
-   void vm_stack_overflow(vm_t *i);
 
 // prototypes and variables
    typedef void vm_intrinsic_func(vm_t *i);

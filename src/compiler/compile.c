@@ -38,6 +38,8 @@ void Compile(ParseContext_t *c) {
     vm_t *i;
     Symbol_t *symbol;
     
+    uint8_t *init_mem = c->sys->nextLow;
+
     // setup an error target
     if (setjmp(c->sys->errorTarget) != 0)
         return;
@@ -70,6 +72,8 @@ void Compile(ParseContext_t *c) {
     // generate code for the main function
     mainCode = Generate(c->g, c->mainFunction);
     
+    uint32_t code_len = (c->sys->nextLow - init_mem);
+
     // store all implicitly declared global variables
     for (symbol = c->globals.head; symbol != NULL; symbol = symbol->next) {
         if (symbol->storageClass == SC_VARIABLE && !symbol->placed) {
@@ -83,10 +87,12 @@ void Compile(ParseContext_t *c) {
     DumpSymbols(&c->globals, "Globals");
     DumpStrings(c);
     
-    if (!(i = vm_initialize(c->sys, c->g->codeBuf, 1024)))
+
+    if (!(i = vm_init(c->g->codeBuf, code_len, 1024)))
         vm_printf("insufficient memory");
     else {
         vm_execute(i, mainCode);
+        vm_deinit(i);
     }
 }
 
