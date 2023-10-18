@@ -27,6 +27,7 @@
 #include "vmopcodes.h"
 
 //#define VM_DEBUG
+#define VM_TRAP
 
 // vm trap codes
 enum {
@@ -78,7 +79,6 @@ typedef struct vm_s {
 uint8_t vm_execute(vm_t *i, VMVALUE mainCode);
    void vm_abort(vm_t *i, const char *fmt, ...);
    void vm_stack_overflow(vm_t *i);
-   void vm_show_stack(vm_t *i);
 
 // prototypes and variables
    typedef void vm_intrinsic_func(vm_t *i);

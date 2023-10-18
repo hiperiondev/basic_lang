@@ -153,3 +153,16 @@ int vmdebug_decode_instruction(VMUVALUE addr, const uint8_t *lc) {
     vm_printf("      <UNKNOWN>\n");
     return 1;
 }
+
+void vm_show_stack(vm_t *i) {
+    VMVALUE *p;
+    if (i->sp < i->stackTop) {
+        vm_printf(" %d", i->tos);
+        for (p = i->sp; p < i->stackTop - 1; ++p) {
+            if (p == i->fp)
+                vm_printf(" <fp>");
+            vm_printf(" %d", *p);
+        }
+        vm_printf("\n");
+    }
+}

@@ -17,6 +17,8 @@
  */
 
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "vmopcodes.h"
 #include "vm.h"
@@ -26,51 +28,9 @@
 #include "vmdebug.h"
 #endif
 
-static void vm_do_trap(vm_t *i, uint8_t op) {
-    switch (op) {
-        case TRAP_GetChar:
-            vm_push(i, i->tos);
-            i->tos = vm_getchar();
-            break;
-        case TRAP_PutChar:
-            vm_putchar(i->tos);
-            i->tos = vm_pop(i);
-            break;
-        case TRAP_PrintStr:
-            vm_printf("%s", (char*) (i->base + i->tos));
-            i->tos = *i->sp++;
-            break;
-        case TRAP_PrintInt:
-            vm_printf("%d", i->tos);
-            i->tos = *i->sp++;
-            break;
-        case TRAP_PrintTab:
-            vm_putchar('\t');
-            break;
-        case TRAP_PrintNL:
-            vm_putchar('\n');
-            break;
-        case TRAP_PrintFlush:
-            vm_flush();
-            break;
-        default:
-            vm_abort(i, "undefined print opcode 0x%02x", op);
-            break;
-    }
-}
-
-void vm_show_stack(vm_t *i) {
-    VMVALUE *p;
-    if (i->sp < i->stackTop) {
-        vm_printf(" %d", i->tos);
-        for (p = i->sp; p < i->stackTop - 1; ++p) {
-            if (p == i->fp)
-                vm_printf(" <fp>");
-            vm_printf(" %d", *p);
-        }
-        vm_printf("\n");
-    }
-}
+#ifdef VM_TRAP
+#include "vmtrap.h"
+#endif
 
 void vm_stack_overflow(vm_t *i) {
     vm_abort(i, "stack overflow");
@@ -85,8 +45,6 @@ void vm_abort(vm_t *i, const char *fmt, ...) {
     va_end(ap);
     if (i)
         longjmp(i->errorTarget, 1);
-    else
-        exit(1);
 }
 
 // initialize the interpreter
@@ -311,7 +269,9 @@ uint8_t vm_execute(vm_t *i, VMVALUE mainCode) {
                     tmp = (tmp << 8) | VMCODEBYTE(i->pc++);
                 break;
             case OP_TRAP:
+#ifdef VM_TRAP
                 vm_do_trap(i, VMCODEBYTE(i->pc++));
+#endif
                 break;
             default:
                 vm_abort(i, "undefined opcode 0x%02x", VMCODEBYTE(i->pc - 1));

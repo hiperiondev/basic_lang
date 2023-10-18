@@ -19,6 +19,7 @@
 #ifndef __VMDEBUG_H__
 #define __VMDEBUG_H__
 
+#include "vm.h"
 #include "vmsystem.h"
 
 // instruction output formats
@@ -39,5 +40,6 @@ extern otdef_t opcode_table[];
 
 void vmdebug_decode_function(VMUVALUE base, const uint8_t *code, int len);
  int vmdebug_decode_instruction(VMUVALUE addr, const uint8_t *lc);
+ void vm_show_stack(vm_t *i);
 
 #endif
