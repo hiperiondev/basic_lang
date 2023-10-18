@@ -19,12 +19,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <ctype.h>
 
 #include "system.h"
 #include "edit.h"
 #include "compile.h"
 #include "vmsystem.h"
+#include "vm.h"
 
 #define MAXTOKEN  32
 
@@ -155,6 +158,8 @@ static void DoRun(EditBuf_t *buf) {
     ParseContext_t *c;
     GetLineHandler *getLine;
     void *getLineCookie;
+    vm_t *i;
+    uint32_t mainCode;
     
     sys->nextHigh = buf->buffer;
     sys->nextLow = sys->freeSpace;
@@ -168,7 +173,14 @@ static void DoRun(EditBuf_t *buf) {
     BufSeekN(buf, 0);
 
     c->sys_line = buf->sys_line;
-    Compile(c);
+    mainCode = Compile(c);
+
+    if (!(i = vm_init(c->g->codeBuf, c->g->code_len, 1024, false)))
+        vm_printf("insufficient memory");
+    else {
+        vm_execute(i, mainCode);
+        vm_deinit(i);
+    }
 
     system_set_main_source(sys_line, getLine, getLineCookie);
 }

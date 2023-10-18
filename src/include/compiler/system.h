@@ -60,6 +60,7 @@ typedef struct System_line_s {
 typedef struct GenerateContext_s {
     vm_context_t *sys;
          uint8_t *codeBuf;
+        uint32_t code_len;
 } GenerateContext_t;
 
 vm_context_t* system_init_context(uint8_t *freeSpace, size_t freeSize);

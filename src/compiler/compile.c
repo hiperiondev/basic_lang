@@ -33,16 +33,15 @@ ParseContext_t* InitCompileContext(vm_context_t *sys) {
 }
 
 // Compile - parse a program
-void Compile(ParseContext_t *c) {
+uint32_t Compile(ParseContext_t *c) {
     VMVALUE mainCode;
-    vm_t *i;
     Symbol_t *symbol;
     
     uint8_t *init_mem = c->sys->nextLow;
 
     // setup an error target
     if (setjmp(c->sys->errorTarget) != 0)
-        return;
+        return 0;
 
     // initialize the string table
     c->strings = NULL;
@@ -71,8 +70,7 @@ void Compile(ParseContext_t *c) {
     
     // generate code for the main function
     mainCode = Generate(c->g, c->mainFunction);
-    
-    uint32_t code_len = (c->sys->nextLow - init_mem);
+    c->g->code_len = c->sys->nextLow - init_mem;
 
     // store all implicitly declared global variables
     for (symbol = c->globals.head; symbol != NULL; symbol = symbol->next) {
@@ -86,14 +84,8 @@ void Compile(ParseContext_t *c) {
     DumpFunctions(c->g);
     DumpSymbols(&c->globals, "Globals");
     DumpStrings(c);
-    
 
-    if (!(i = vm_init(c->g->codeBuf, code_len, 1024, false)))
-        vm_printf("insufficient memory");
-    else {
-        vm_execute(i, mainCode);
-        vm_deinit(i);
-    }
+    return mainCode;
 }
 
 // PushFile - push a file onto the input file stack
