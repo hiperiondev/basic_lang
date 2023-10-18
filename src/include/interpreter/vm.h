@@ -20,6 +20,8 @@
 #define __VMINT_H__
 
 #include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <stdarg.h>
 #include <setjmp.h>
 
@@ -42,6 +44,7 @@ enum {
 
 // interpreter state structure
 typedef struct vm_s {
+            bool code_referenced;
          uint8_t *base;
          jmp_buf errorTarget;
          VMVALUE *stack;
@@ -77,7 +80,7 @@ typedef struct vm_s {
 #define vm_drop(i, n)        ((i)->sp += (n))
 
 // prototypes from db_vmint.c
-  vm_t* vm_init(uint8_t *code, uint32_t code_len, VMVALUE stackSize);
+  vm_t* vm_init(uint8_t *code, uint32_t code_len, VMVALUE stackSize, bool reference_code);
    void vm_deinit(vm_t *i);
 uint8_t vm_execute(vm_t *i, VMVALUE mainCode);
    void vm_abort(vm_t *i, const char *fmt, ...);

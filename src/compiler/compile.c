@@ -88,7 +88,7 @@ void Compile(ParseContext_t *c) {
     DumpStrings(c);
     
 
-    if (!(i = vm_init(c->g->codeBuf, code_len, 1024)))
+    if (!(i = vm_init(c->g->codeBuf, code_len, 1024, false)))
         vm_printf("insufficient memory");
     else {
         vm_execute(i, mainCode);

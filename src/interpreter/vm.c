@@ -45,7 +45,7 @@ void vm_abort(vm_t *i, const char *fmt, ...) {
 }
 
 // initialize the interpreter
-vm_t* vm_init(uint8_t *code, uint32_t code_len, VMVALUE stackSize) {
+vm_t* vm_init(uint8_t *code, uint32_t code_len, VMVALUE stackSize, bool reference_code) {
     vm_t *i;
 
     if (!(i = (vm_t*) malloc(sizeof(vm_t))))
@@ -56,8 +56,14 @@ vm_t* vm_init(uint8_t *code, uint32_t code_len, VMVALUE stackSize) {
 
     i->stackTop = i->stack + stackSize;
 
-    i->base = malloc(code_len * sizeof(uint8_t));
-    memcpy(i->base, code, code_len);
+    if (reference_code) {
+        i->base = code;
+        i->code_referenced = true;
+    } else {
+        i->base = malloc(code_len * sizeof(uint8_t));
+        memcpy(i->base, code, code_len);
+        i->code_referenced = false;
+    }
 
     return i;
 }
@@ -67,7 +73,8 @@ void vm_deinit(vm_t *i) {
         return;
 
     free(i->stack);
-    free(i->base);
+    if (!i->code_referenced)
+        free(i->base);
     free(i);
 
 }
