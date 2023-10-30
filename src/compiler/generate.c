@@ -47,12 +47,8 @@ struct PVAL_s {
     } u;
 };
 
-static struct {
-    Symbol_t *symbol;
-    VMVALUE code;
-    size_t codeLen;
-} functions[100];
-static int functionCount = 0;
+functions_t generate_functions[100];
+int generate_functionCount = 0;
 
 // local function prototypes
 static void code_lvalue(GenerateContext_t *c, ParseTreeNode_t *expr, PVAL_t *pv);
@@ -92,7 +88,7 @@ GenerateContext_t* InitGenerateContext(vm_context_t *sys) {
         return NULL;
     g->sys = sys;
     g->codeBuf = sys->nextLow;
-    functionCount = 0;
+    generate_functionCount = 0;
     return g;
 }
 
@@ -242,10 +238,10 @@ static void code_function_definition(GenerateContext_t *c, ParseTreeNode_t *node
     codeSize = sys->nextLow - base;
     if (node->u.functionDefinition.symbol)
         PlaceSymbol(c, node->u.functionDefinition.symbol, code);
-    functions[functionCount].symbol = node->u.functionDefinition.symbol;
-    functions[functionCount].code = code;
-    functions[functionCount].codeLen = codeSize;
-    ++functionCount;
+    generate_functions[generate_functionCount].symbol = node->u.functionDefinition.symbol;
+    generate_functions[generate_functionCount].code = code;
+    generate_functions[generate_functionCount].codeLen = codeSize;
+    ++generate_functionCount;
 }
 
 // code_if_statement - generate code for an IF statement
@@ -607,9 +603,9 @@ VMVALUE StoreByteVector(GenerateContext_t *c, const uint8_t *buf, int size) {
 // DumpFunctions - dump function definitions
 void DumpFunctions(GenerateContext_t *c) {
     int i;
-    for (i = 0; i < functionCount; ++i) {
-        vm_printf("function '%s':\n", functions[i].symbol ? functions[i].symbol->name : "<main>");
-        vmdebug_decode_function(functions[i].code, c->codeBuf + functions[i].code, functions[i].codeLen);
+    for (i = 0; i < generate_functionCount; ++i) {
+        vm_printf("function '%s':\n", generate_functions[i].symbol ? generate_functions[i].symbol->name : "<main>");
+        vmdebug_decode_function(generate_functions[i].code, c->codeBuf + generate_functions[i].code, generate_functions[i].codeLen, NULL, NULL, false);
         vm_printf("\n");
     }
 }

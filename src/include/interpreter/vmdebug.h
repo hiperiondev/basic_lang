@@ -38,8 +38,8 @@ typedef struct {
 
 extern otdef_t opcode_table[];
 
-void vmdebug_decode_function(VMUVALUE base, const uint8_t *code, int len);
- int vmdebug_decode_instruction(VMUVALUE addr, const uint8_t *lc);
+void vmdebug_decode_function(VMUVALUE base, const uint8_t *code, int len, char ***asmcode, uint32_t *asmcode_qty, bool toCode);
+ int vmdebug_decode_instruction(VMUVALUE addr, const uint8_t *lc, char **code, bool toCode);
  void vm_show_stack(vm_t *i);
 
 #endif

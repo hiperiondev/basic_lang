@@ -1,8 +1,19 @@
 /*
- * vmtrap.c
+ * @vmtrap.c
  *
- *  Created on: 18 oct. 2023
- *      Author: egonzalez
+ * @brief
+ * @details
+ * This is based on other projects:
+ *   junkbasic (David Michael Betz): https://github.com/dbetz/junkbasic/
+ *   Others (see individual files)
+ *
+ *   please contact their authors for more information.
+ *
+ * @author Emiliano Gonzalez (egonzalez . hiperion @ gmail . com))
+ * @version 0.1
+ * @date 2023
+ * @copyright MIT License
+ * @see https://github.com/hiperiondev/basic_lang
  */
 
 #include <stdint.h>
@@ -21,7 +32,7 @@ void vm_do_trap(vm_t *i, uint8_t op) {
             i->tos = vm_pop(i);
             break;
         case TRAP_PrintStr:
-            vm_printf("%s", (char*) (i->base + i->tos));
+            vm_printf("%s", (char*) (i->code + i->tos));
             i->tos = *i->sp++;
             break;
         case TRAP_PrintInt:

@@ -27,6 +27,8 @@
 #include "edit.h"
 #include "compile.h"
 #include "vmsystem.h"
+#include "vmdebug.h"
+#include "optimize.h"
 #include "vm.h"
 
 #define MAXTOKEN  32
@@ -56,6 +58,7 @@ static void DoSave(EditBuf_t *buf);
 static void DoSaveBin(EditBuf_t *buf);
 static void DoRunBin(EditBuf_t *buf);
 static void DoCat(EditBuf_t *buf);
+static void DoDump(EditBuf_t *buf);
 static void DoHelp(EditBuf_t *buf);
 
 // command table
@@ -64,17 +67,18 @@ static struct {
     void (*handler)(EditBuf_t *buf);
     char *help;
 } cmds[] = {
-        { "NEW"     , DoNew    , "create new file"            },
-        { "LIST"    , DoList   , "list loaded program"        },
-        { "RUN"     , DoRun    , "run loaded file"            },
-        { "RENUM"   , DoRenum  , "renumber program lines"     },
-        { "LOAD"    , DoLoad   , "load file"                  },
-        { "SAVE"    , DoSave   , "save program"               },
-        { "SAVEBIN" , DoSaveBin, "save compiled file"         },
-        { "RUNBIN"  , DoRunBin , "load and run compiled file" },
-        { "CAT"     , DoCat    , "show file content"          },
-        { "HELP"    , DoHelp   , "this help"                  },
-        { NULL      , NULL     , NULL                         }
+        { "NEW"        , DoNew        , "create new file"                     },
+        { "LIST"       , DoList       , "list loaded program"                 },
+        { "RUN"        , DoRun        , "run loaded file"                     },
+        { "RENUM"      , DoRenum      , "renumber program lines"              },
+        { "LOAD"       , DoLoad       , "load file"                           },
+        { "SAVE"       , DoSave       , "save program"                        },
+        { "SAVEBIN"    , DoSaveBin    , "save compiled file"                  },
+        { "RUNBIN"     , DoRunBin     , "load and run compiled file"          },
+        { "CAT"        , DoCat        , "show file content"                   },
+        { "DUMP"       , DoDump       , "dump assembler to file"              },
+        { "HELP"       , DoHelp       , "this help"                           },
+        { NULL         , NULL         , NULL                                  }
 };
 
 ParseContext_t *c;
@@ -163,7 +167,7 @@ static char* EditGetLine(char *buf, int len, int *pLineNumber, void *cookie) {
     return BufGetLine(editBuf, pLineNumber, buf);
 }
 
-static void compileProgram(EditBuf_t *buf) {
+static void compileProgram(EditBuf_t *buf, bool debug) {
     sys = buf->sys;
     sys_line = buf->sys_line;
     
@@ -179,11 +183,11 @@ static void compileProgram(EditBuf_t *buf) {
     BufSeekN(buf, 0);
 
     c->sys_line = buf->sys_line;
-    Compile(c);
+    Compile(c, debug);
 }
 
 static void DoRun(EditBuf_t *buf) {
-    compileProgram(buf);
+    compileProgram(buf, false);
     if (!(i = vm_init(c->g->codeBuf, c->g->code_len, 1024, false)))
         vm_printf("insufficient memory");
     else {
@@ -281,14 +285,14 @@ static void DoSaveBin(EditBuf_t *buf) {
     if (!(fp = VM_fopen(buf->programName, "w")))
         vm_printf("error saving '%s'\n", buf->programName);
     else {
-        compileProgram(buf);
+        compileProgram(buf, true);
         if (!(i = vm_init(c->g->codeBuf, c->g->code_len, 1024, false)))
             vm_printf("insufficient memory");
         else {
             VM_fwrite(&c->g->mainCode, sizeof(uint32_t), 1, fp);
             VM_fwrite(&i->codelen, sizeof(uint32_t), 1, fp);
             VM_fwrite(&i->stack_size, sizeof(uint32_t), 1, fp);
-            VM_fwrite(i->base, i->codelen, 1, fp);
+            VM_fwrite(i->code, i->codelen, 1, fp);
             VM_fclose(fp);
             vm_deinit(i);
         }
@@ -318,7 +322,7 @@ static void DoRunBin(EditBuf_t *buf) {
         if (!(i = vm_init(NULL, codeLen, 1024, false)))
             vm_printf("insufficient memory");
         else {
-            VM_fread(i->base, codeLen * sizeof(uint8_t), 1, fp);
+            VM_fread(i->code, codeLen * sizeof(uint8_t), 1, fp);
             VM_fclose(fp);
 
             vm_execute(i, mainCode);
@@ -338,6 +342,17 @@ static void DoCat(EditBuf_t *buf) {
         }
         system_fs_closedir(&dir);
     }
+}
+
+static void DoDump(EditBuf_t *buf) {
+    compileProgram(buf, false);
+
+    optimize(c, true);
+    //DumpStrings(c);
+    //DumpSymbols(&c->globals, "Globals");
+    //DumpFunctions(c->g);
+
+    system_set_main_source(sys_line, getLine, getLineCookie);
 }
 
 static char* NextToken(System_line_t *sys) {

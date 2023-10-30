@@ -21,35 +21,6 @@
 
 #include "compile.h"
 
-// node type names
-/*
-static char *nodeTypeNames[] = {
-        "NodeTypeFunctionDefinition",
-        "NodeTypeLetStatement",
-        "NodeTypeIfStatement",
-        "NodeTypeForStatement",
-        "NodeTypeDoWhileStatement",
-        "NodeTypeDoUntilStatement",
-        "NodeTypeLoopStatement",
-        "NodeTypeLoopWhileStatement",
-        "NodeTypeLoopUntilStatement",
-        "NodeTypeReturnStatement",
-        "NodeTypeEndStatement",
-        "NodeTypeCallStatement",
-        "NodeTypeGlobalRef",
-        "NodeTypeArgumentRef",
-        "NodeTypeLocalRef",
-        "NodeTypeStringLit",
-        "NodeTypeIntegerLit",
-        "NodeTypeUnaryOp",
-        "NodeTypeBinaryOp",
-        "NodeTypeArrayRef",
-        "NodeTypeFunctionCall",
-        "NodeTypeDisjunction",
-        "NodeTypeConjunction"
-};
-*/
-
 // local function prototypes
 static void ParseInclude(ParseContext_t *c);
 static String_t* AddString(ParseContext_t *c, const char *value);

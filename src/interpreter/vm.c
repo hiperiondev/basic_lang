@@ -59,12 +59,12 @@ vm_t* vm_init(uint8_t *code, uint32_t code_len, VMVALUE stackSize, bool referenc
     i->stack_size = stackSize;
 
     if (reference_code) {
-        i->base = code;
+        i->code = code;
         i->code_referenced = true;
     } else {
-        i->base = malloc(code_len * sizeof(uint8_t));
+        i->code = malloc(code_len * sizeof(uint8_t));
         if (code != NULL)
-            memcpy(i->base, code, code_len);
+            memcpy(i->code, code, code_len);
         i->code_referenced = false;
     }
 
@@ -77,7 +77,7 @@ void vm_deinit(vm_t *i) {
 
     free(i->stack);
     if (!i->code_referenced)
-        free(i->base);
+        free(i->code);
     free(i);
 
 }
@@ -89,7 +89,7 @@ uint8_t vm_execute(vm_t *i, VMVALUE mainCode) {
     int32_t cnt;
 
     // initialize
-    i->pc = i->base + mainCode;
+    i->pc = i->code + mainCode;
     i->sp = i->fp = i->stackTop;
 
     if (setjmp(i->errorTarget))
@@ -98,7 +98,7 @@ uint8_t vm_execute(vm_t *i, VMVALUE mainCode) {
     for (;;) {
 #ifdef VM_DEBUG
         vm_show_stack(i);
-        vmdebug_decode_instruction(i->pc - i->base, i->pc);
+        vmdebug_decode_instruction(i->pc - i->code, i->pc);
 #endif
         switch (VMCODEBYTE(i->pc++)) {
             case OP_HALT:
@@ -223,19 +223,19 @@ uint8_t vm_execute(vm_t *i, VMVALUE mainCode) {
                 i->tos = tmpb;
                 break;
             case OP_LOAD:
-                i->tos = *(VMVALUE*) (i->base + i->tos);
+                i->tos = *(VMVALUE*) (i->code + i->tos);
                 break;
             case OP_LOADB:
-                i->tos = *(i->base + i->tos);
+                i->tos = *(i->code + i->tos);
                 break;
             case OP_STORE:
                 tmp = vm_pop(i);
-                *(VMVALUE*) (i->base + i->tos) = tmp;
+                *(VMVALUE*) (i->code + i->tos) = tmp;
                 i->tos = vm_pop(i);
                 break;
             case OP_STOREB:
                 tmp = vm_pop(i);
-                *(i->base + i->tos) = tmp;
+                *(i->code + i->tos) = tmp;
                 i->tos = vm_pop(i);
                 break;
             case OP_LREF:
@@ -253,8 +253,8 @@ uint8_t vm_execute(vm_t *i, VMVALUE mainCode) {
                 i->tos = tmp + i->tos * sizeof(VMVALUE);
                 break;
             case OP_CALL:
-                tmp = (VMVALUE) (i->pc - (uint8_t*) i->base);
-                i->pc = i->base + i->tos;
+                tmp = (VMVALUE) (i->pc - (uint8_t*) i->code);
+                i->pc = i->code + i->tos;
                 i->tos = tmp;
                 break;
             case OP_CLEAN:
@@ -273,7 +273,7 @@ uint8_t vm_execute(vm_t *i, VMVALUE mainCode) {
                 i->tos = 0;
                 //no break
             case OP_RETURN:
-                i->pc = (uint8_t*) i->base + vm_top(i);
+                i->pc = (uint8_t*) i->code + vm_top(i);
                 i->sp = i->fp;
                 i->fp = (VMVALUE*) (i->stack + i->fp[F_FP]);
                 break;

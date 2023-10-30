@@ -33,7 +33,7 @@ ParseContext_t* InitCompileContext(vm_context_t *sys) {
 }
 
 // Compile - parse a program
-void Compile(ParseContext_t *c) {
+void Compile(ParseContext_t *c, bool debug) {
     Symbol_t *symbol;
     
     uint8_t *init_mem = c->sys->nextLow;
@@ -65,7 +65,8 @@ void Compile(ParseContext_t *c) {
             ParseStatement(c, tkn);
     }
     
-    PrintNode(c->mainFunction, 0);
+    if (debug)
+        PrintNode(c->mainFunction, 0);
     
     // generate code for the main function
     c->g->mainCode = Generate(c->g, c->mainFunction);
@@ -80,9 +81,11 @@ void Compile(ParseContext_t *c) {
         }
     }
 
-    DumpFunctions(c->g);
-    DumpSymbols(&c->globals, "Globals");
-    DumpStrings(c);
+    if (debug) {
+        DumpFunctions(c->g);
+        DumpSymbols(&c->globals, "Globals");
+        DumpStrings(c);
+    }
 }
 
 // PushFile - push a file onto the input file stack

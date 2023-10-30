@@ -45,7 +45,7 @@ enum {
 // interpreter state structure
 typedef struct vm_s {
             bool code_referenced;
-         uint8_t *base;
+         uint8_t *code;
          uint32_t codelen;
          jmp_buf errorTarget;
          VMVALUE *stack;

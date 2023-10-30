@@ -3,6 +3,10 @@ include "io.bas"
 a = 1
 
 function foo(x)
+ if a = 1 then
+  print "a=2"
+ end if
+ 
  return bar(x) + bar(a)
 end function
 

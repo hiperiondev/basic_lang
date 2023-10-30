@@ -1,5 +1,5 @@
 /*
- * @vmtrap.h.c
+ * @optimize.c
  *
  * @brief
  * @details
@@ -16,9 +16,11 @@
  * @see https://github.com/hiperiondev/basic_lang
  */
 
-#ifndef VMTRAP_H_
-#define VMTRAP_H_
+#ifndef OPTIMIZE_H_
+#define OPTIMIZE_H_
 
-void vm_do_trap(vm_t *i, uint8_t op);
+#include "compile.h"
 
-#endif /* VMTRAP_H_ */
+void optimize(ParseContext_t *c, bool dump);
+
+#endif /* OPTIMIZE_H_ */

@@ -21,6 +21,8 @@
 
 #include <stdio.h>
 #include <setjmp.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "vmtypes.h"
 #include "vmopcodes.h"
@@ -39,6 +41,12 @@ typedef struct ParseTreeNod_se ParseTreeNode_t;
 typedef struct NodeListEntry_s NodeListEntry_t;
 typedef struct ParseFile_s ParseFile_t;
 typedef struct IncludedFile_s IncludedFile_t;
+
+typedef struct functions_s {
+    Symbol_t *symbol;
+    VMVALUE code;
+    size_t codeLen;
+} functions_t;
 
 // parse file
 struct ParseFile_s {
@@ -340,7 +348,7 @@ struct NodeListEntry_s {
 
 // compile.c
  ParseContext_t* InitCompileContext(vm_context_t *sys);
-            void Compile(ParseContext_t *c);
+            void Compile(ParseContext_t *c, bool debug);
 
 // parse.c
  ParseContext_t* InitParseContext(vm_context_t *sys);
