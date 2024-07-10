@@ -194,8 +194,14 @@ char* TokenName(int token) {
         case T_IDENTIFIER:
             name = "<IDENTIFIER>";
             break;
-        case T_NUMBER:
-            name = "<NUMBER>";
+        case T_INTNUMBER:
+            name = "<INTNUMBER>";
+            break;
+        case T_UINTNUMBER:
+            name = "<UINTNUMBER>";
+            break;
+        case T_FLOATNUMBER:
+            name = "<FLOATNUMBER>";
             break;
         case T_STRING:
             name = "<STRING>";
@@ -422,7 +428,7 @@ static int NumberToken(ParseContext_t *c, int ch) {
     c->tokenValue = (VMVALUE) atol(c->token);
     
     // return the token
-    return T_NUMBER;
+    return T_INTNUMBER;
 }
 
 // HexNumberToken - get a hexadecimal number
@@ -444,7 +450,7 @@ static int HexNumberToken(ParseContext_t *c) {
     c->tokenValue = (VMVALUE) strtoul(c->token, NULL, 16);
     
     // return the token
-    return T_NUMBER;
+    return T_UINTNUMBER;
 }
 
 // BinaryNumberToken - get a binary number
@@ -466,7 +472,7 @@ static int BinaryNumberToken(ParseContext_t *c) {
     c->tokenValue = (VMVALUE) strtoul(c->token, NULL, 2);
     
     // return the token
-    return T_NUMBER;
+    return T_UINTNUMBER;
 }
 
 // StringToken - get a string
@@ -500,7 +506,7 @@ static int CharToken(ParseContext_t *c) {
     c->token[0] = ch;
     c->token[1] = '\0';
     c->tokenValue = ch;
-    return T_NUMBER;
+    return T_INTNUMBER;
 }
 
 // LiteralChar - get a character from a literal string

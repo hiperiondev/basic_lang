@@ -5,6 +5,7 @@ a = 1
 function foo(x)
  if a = 1 then
   print "a=2"
+  return 3 + 0
  end if
  
  return bar(x) + bar(a)

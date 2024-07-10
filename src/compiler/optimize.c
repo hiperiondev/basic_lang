@@ -35,6 +35,7 @@ typedef struct codeGlobal_s {
     uint32_t pos;
         char *name;
         bool placed;
+     VMVALUE value;
 } codeGlobal_t;
 
 typedef struct codeFunction_s {
@@ -84,6 +85,7 @@ void optimize(ParseContext_t *c, bool dump) {
             actual.globals[actual.globals_qty].name = strdup(sym->name);
             actual.globals[actual.globals_qty].pos= sym->value;
             actual.globals[actual.globals_qty].placed = (bool)sym->placed;
+            actual.globals[actual.globals_qty].value = sym->value;
             ++actual.globals_qty;
         }
     }
@@ -109,7 +111,7 @@ void optimize(ParseContext_t *c, bool dump) {
 
         vm_printf("\nGLOBALS:\n");
         for (i = 0; i < actual.globals_qty; i++) {
-            vm_printf("  %s %s\n", actual.globals[i].name, actual.globals[i].placed ? "(placed)" : "");
+            vm_printf("  %s: %d(%08x) %s\n", actual.globals[i].name, actual.globals[i].value, actual.globals[i].value, actual.globals[i].placed ? "(placed)" : "");
         }
 
         vm_printf("\nFUNCTIONS:\n");

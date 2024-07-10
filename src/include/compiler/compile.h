@@ -108,7 +108,9 @@ enum {
     T_SHL,
     T_SHR,
     T_IDENTIFIER,
-    T_NUMBER,
+    T_INTNUMBER,
+    T_UINTNUMBER,
+    T_FLOATNUMBER,
     T_STRING,
     T_EOL,
     T_EOF
@@ -154,6 +156,8 @@ typedef enum {
 typedef enum {
     TYPE_UNKNOWN,
     TYPE_INTEGER,
+    TYPE_UINTEGER,
+    TYPE_FLOAT,
     TYPE_BYTE,
     TYPE_STRING,
     TYPE_ARRAY,

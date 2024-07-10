@@ -1165,7 +1165,17 @@ static ParseTreeNode_t* ParseSimplePrimary(ParseContext_t *c) {
             node = ParseExpr(c);
             FRequire(c, ')');
             break;
-        case T_NUMBER:
+        case T_INTNUMBER:
+            node = NewParseTreeNode(c, NodeTypeIntegerLit);
+            node->type = &c->integerType;
+            node->u.integerLit.value = c->tokenValue;
+            break;
+        case T_UINTNUMBER: // TODO:
+            node = NewParseTreeNode(c, NodeTypeIntegerLit);
+            node->type = &c->integerType;
+            node->u.integerLit.value = c->tokenValue;
+            break;
+        case T_FLOATNUMBER: // TODO:
             node = NewParseTreeNode(c, NodeTypeIntegerLit);
             node->type = &c->integerType;
             node->u.integerLit.value = c->tokenValue;
